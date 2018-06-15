@@ -44,7 +44,7 @@ module MiniSql
         instance_eval <<~RUBY
         def materialize(pg_result, index)
           r = self.new
-          #{col=-1; fields.map{|f| "r.#{f} = pg_result.getvalue(index, #{col+=1})"}.join('\n')}
+          #{col=-1; fields.map{|f| "r.#{f} = pg_result.getvalue(index, #{col+=1})"}.join("; ")}
           r
         end
         RUBY

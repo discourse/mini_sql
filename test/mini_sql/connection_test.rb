@@ -18,6 +18,15 @@ class MiniSql::TestConnection < MiniTest::Test
     assert_equal(3, rows)
   end
 
+  def test_multi_columns
+    v = @connection.query("select 1 one, 'two' two").map do |o|
+      [o.one, o.two]
+    end
+
+    assert_equal([[1, 'two']], v)
+
+  end
+
   def test_can_query_sql
     r = @connection.query("select 1 one").first.one
     assert_equal(1, r)
