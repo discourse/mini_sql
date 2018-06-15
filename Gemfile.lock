@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    mini_sql (0.1.0)
+    mini_sql (0.1.1)
 
 GEM
   remote: https://rubygems.org/
