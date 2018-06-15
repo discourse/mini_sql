@@ -37,6 +37,34 @@ puts conn.query_single('select 1 union select 2')
 
 ```
 
+## Is it fast?
+
+Yes, it is very fast, see benchmarks at: [bench directory](https://github.com/discourse/mini_sql/tree/master/bench)
+
+As a rule it will outperform similar naive PG code while remaining safe.
+
+```
+pg_conn = PG.connect(db_name: 'my_db')
+
+# this is slower, and less safe
+pg_conn.async_exec('select * from table') do |r|
+  name = r['name']
+end
+
+# this is faster and safer
+conn = MiniSql::Connection.new(pg_conn)
+conn.query('select * from table') do |r|
+  name = r.name
+end
+```
+
+## Safety
+
+In current version of the PG gem you should be careful to clear results. If you do not you risk memory bloat.
+See: [Sam's blog post](https://samsaffron.com/archive/2018/06/13/ruby-x27-s-external-malloc-problem).
+
+MiniSql is careful to always clear results as soon as possible.
+
 ## Development
 
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
