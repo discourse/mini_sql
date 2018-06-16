@@ -70,7 +70,7 @@ module MiniSql
           i += 1
           case params[i-1]
           when Integer then "$#{i}::bigint"
-          when Float then "$#{i}::float8"
+          when Float then "$#{i}::double precision"
           else "$#{i}"
           end
         end
