@@ -2,8 +2,10 @@ language: ruby
 rvm:
   - 2.5.1
   - ruby-head
+
 before_install:
   - gem install bundler
+
 cache: bundler
 sudo: false
 
@@ -12,6 +14,7 @@ addons:
 
 install:
   - createdb test_mini_sql
+  - bundle install
 
 matrix:
   allow_failures:
