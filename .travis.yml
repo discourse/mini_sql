@@ -7,6 +7,12 @@ before_install:
 cache: bundler
 sudo: false
 
+addons:
+  postgresql: 9.6
+
+install:
+  - createdb test_mini_sql
+
 matrix:
   allow_failures:
     - rvm: ruby-head
