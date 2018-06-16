@@ -44,6 +44,10 @@ module MiniSql
       result.clear if result
     end
 
+    def build(sql)
+      Builder.new(self, sql)
+    end
+
     private
 
     def run(sql, params)
