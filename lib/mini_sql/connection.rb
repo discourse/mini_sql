@@ -71,7 +71,7 @@ module MiniSql
           case params[i-1]
           when Integer then "$#{i}::bigint"
           when Float then "$#{i}::double precision"
-          else "$#{i}"
+          else "$#{i}::unknown"
           end
         end
         param_array = params
