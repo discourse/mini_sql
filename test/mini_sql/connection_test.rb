@@ -14,7 +14,7 @@ class MiniSql::TestConnection < MiniTest::Test
       @connection.exec("insert into testing (a) values (:a)", a: 1)
     end
 
-    rows = @connection.exec("update testing set a = 7")
+    rows = @connection.exec("update testing set a = 7 where a = 1")
     assert_equal(3, rows)
   end
 
@@ -24,7 +24,12 @@ class MiniSql::TestConnection < MiniTest::Test
     end
 
     assert_equal([[1, 'two']], v)
+  end
 
+  def test_inet
+    r = @connection.query("select '1.1.1.1'::inet ip").first.ip
+    assert_equal(IPAddr.new('1.1.1.1'), r)
+    assert_equal(IPAddr, r.class)
   end
 
   def test_can_query_sql
@@ -33,6 +38,12 @@ class MiniSql::TestConnection < MiniTest::Test
 
     r = @connection.query("select 1.1 two").first.two
     assert_equal(1.1, r)
+
+    r = @connection.query("select current_timestamp as time").first.time
+    delta = Time.now - r
+    assert(delta < 1)
+
+    r = @connection.query("select current_timestamp as time").first.time
   end
 
   def test_can_query_single

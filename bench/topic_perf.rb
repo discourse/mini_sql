@@ -34,7 +34,7 @@ SQL
 
 pg.async_exec <<SQL
 CREATE TABLE topics (
-    id integer NOT NULL,
+    id integer NOT NULL PRIMARY KEY,
     title character varying NOT NULL,
     last_posted_at timestamp without time zone,
     created_at timestamp without time zone NOT NULL,
@@ -171,6 +171,56 @@ end
 results = [ar_title_id, ar_title_id_pluck, pg_title_id, mini_sql_title_id, sequel_pluck_title_id, sequel_select_title_id]
 
 exit(-1) unless results.uniq.length == 1
+
+
+def wide_topic_ar
+  Topic.first
+end
+
+def wide_topic_pg
+  r = $conn.async_exec("select * from topics limit 1")
+  row = r.first
+  r.clear
+  row
+end
+
+def wide_topic_sequel
+  TopicSequel.first
+end
+
+def wide_topic_mini_sql
+  $conn.query("select * from topics limit 1").first
+end
+
+Benchmark.ips do |r|
+  r.report("wide topic ar") do |n|
+    while n > 0
+      wide_topic_ar
+      n -= 1
+    end
+  end
+  r.report("wide topic sequel") do |n|
+    while n > 0
+      wide_topic_sequel
+      n -= 1
+    end
+  end
+  r.report("wide topic pg") do |n|
+    while n > 0
+      wide_topic_pg
+      n -= 1
+    end
+  end
+  r.report("wide topic mini sql") do |n|
+    while n > 0
+      wide_topic_mini_sql
+      n -= 1
+    end
+  end
+  r.compare!
+end
+
+
 
 Benchmark.ips do |r|
   r.report("ar select title id") do |n|

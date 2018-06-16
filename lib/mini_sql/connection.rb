@@ -10,6 +10,7 @@ module MiniSql
         begin
           map = PG::BasicTypeMapForResults.new(conn)
           map.add_coder(MiniSql::Coders::NumericCoder.new(name: "numeric", oid: 1700, format: 0))
+          map.add_coder(MiniSql::Coders::IPAddrCoder.new(name: "inet", oid: 869, format: 0))
         end
     end
 
