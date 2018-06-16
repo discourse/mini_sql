@@ -18,6 +18,14 @@ class MiniSql::TestConnection < MiniTest::Test
     assert_equal(3, rows)
   end
 
+  def test_can_use_simple_params
+    r = @connection.query("select ? as a, ? as b, ? as c", [1, "two", 3.1]).first
+
+    assert_equal(1, r.a)
+    assert_equal("two", r.b)
+    assert_equal(3.1, r.c)
+  end
+
   def test_multi_columns
     v = @connection.query("select 1 one, 'two' two").map do |o|
       [o.one, o.two]

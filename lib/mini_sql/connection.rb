@@ -56,11 +56,25 @@ module MiniSql
 
     def process_params(sql, params)
       sql = sql.dup
-      param_array = []
+      param_array = nil
 
-      params.each do |k, v|
-        sql.gsub!(":#{k.to_s}", "$#{param_array.length + 1}")
-        param_array << v
+      if Hash === params
+        param_array = []
+        params.each do |k, v|
+          sql.gsub!(":#{k.to_s}", "$#{param_array.length + 1}")
+          param_array << v
+        end
+      elsif Array === params
+        i = 0
+        sql.gsub!("?") do
+          i += 1
+          case params[i-1]
+          when Integer then "$#{i}::bigint"
+          when Float then "$#{i}::float8"
+          else "$#{i}"
+          end
+        end
+        param_array = params
       end
 
       [sql, param_array]
