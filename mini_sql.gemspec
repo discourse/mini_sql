@@ -28,4 +28,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "pg", "~> 1.0.0"
   spec.add_development_dependency "guard", "~> 2.14"
   spec.add_development_dependency "guard-minitest", "~> 2.4"
+  spec.add_development_dependency "activesupport", "~> 5.2"
 end

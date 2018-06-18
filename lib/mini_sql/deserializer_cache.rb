@@ -40,6 +40,7 @@ module MiniSql
 
       Class.new do
         attr_accessor(*fields)
+        alias :read_attribute_for_serialization :send
 
         instance_eval <<~RUBY
         def materialize(pg_result, index)

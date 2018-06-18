@@ -12,4 +12,10 @@ class MiniSql::TestBuilder < MiniTest::Test
     l = builder.query(zero: 0).length
     assert_equal(0, l)
   end
+
+  def test_append_params
+    builder = @connection.build("select 1 as one /*where*/")
+    builder.where("1 = :zero", zero: 0)
+    assert_equal(0, builder.exec)
+  end
 end

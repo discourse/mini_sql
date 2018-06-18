@@ -2,7 +2,7 @@ module MiniSql
   module Coders
     class NumericCoder < PG::SimpleDecoder
       def decode(string, tuple = nil, field = nil)
-        string.to_f
+        BigDecimal.new(string)
       end
     end
     class IPAddrCoder < PG::SimpleDecoder

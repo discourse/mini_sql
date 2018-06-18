@@ -16,10 +16,13 @@ class MiniSql::TestConnection < MiniTest::Test
 
     rows = @connection.exec("update testing set a = 7 where a = 1")
     assert_equal(3, rows)
+
+    count = @connection.query("select count(*) from testing").first.count
+    assert_equal(3, count)
   end
 
   def test_can_use_simple_params
-    r = @connection.query("select ? as a, ? as b, ? as c", [1, "two", 3.1]).first
+    r = @connection.query("select ? as a, ? as b, ? as c", 1, "two", 3.1).first
 
     assert_equal(1, r.a)
     assert_equal("two", r.b)
@@ -57,6 +60,77 @@ class MiniSql::TestConnection < MiniTest::Test
   def test_can_query_single
     r = @connection.query_single("select 1 one union select 2")
     assert_equal([1,2], r)
+  end
+
+  def test_can_query_single_multi
+    r = @connection.query_single("select 1, 2 one union select 3, 4")
+    assert_equal([1,2,3,4], r)
+  end
+
+  def test_can_deal_with_arrays
+    r = @connection.query_single("select :array as array", {array: [1,2,3]})
+    assert_equal([1,2,3], r)
+
+    r = @connection.query_single("select ? as array", [1,2,3])
+    assert_equal([1,2,3], r)
+
+    r = @connection.query_single(
+      "select * from (select 1 x union select 2 union select 3) a where a.x in(?)",
+      [[1,4,3]]
+    )
+
+    assert_equal([1,3], r)
+  end
+
+  def test_multi_param
+    r = @connection.query_single(<<~SQL, a: "a", b: "b")
+      select :a as a1, :b as b1, :a as a2, :b as b1
+    SQL
+
+    assert_equal(["a", "b", "a", "b"], r)
+  end
+
+  def test_supports_time_with_zone_param
+    require 'active_support'
+    require 'active_support/core_ext'
+    Time.zone = "Eastern Time (US & Canada)"
+    t = Time.zone.now
+    r = @connection.query_single("select ?::timestamp with time zone", t)
+
+    delta = Time.now - r[0]
+    assert(delta < 5)
+
+    # TODO
+    # @connection.exec('create temp table dating (x timestamp without time zone)')
+    # @connection.exec('insert into dating values(?)', t)
+    # d = @connection.query_single('select * from dating').first
+    #
+    # delta = Time.now - d
+    # assert(delta < 5)
+  end
+
+  def test_too_many_params_hash
+    r = @connection.query_single("select 100", {a: 99})
+    assert_equal(r[0], 100)
+  end
+
+  def test_too_many_params
+    r = @connection.query_single("select 100", ["a", nil])
+    assert_equal(r[0], 100)
+  end
+
+  def test_exec_returns_row_count
+    r = @connection.exec("select 77 union select 22")
+    assert_equal(2, r)
+
+    r = @connection.exec("select 77 where 0 = 1")
+    assert_equal(0, r)
+  end
+
+  def test_supports_am_serialization_protocol
+    r = @connection.query("select true as bool")
+    assert_equal(true, r[0].send(:bool))
+    assert_equal(true, r[0].read_attribute_for_serialization(:bool))
   end
 
 end

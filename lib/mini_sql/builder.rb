@@ -1,7 +1,7 @@
 class MiniSql::Builder
 
   def initialize(connection, template)
-    @args = {}
+    @args = nil
     @sql = template
     @sections = {}
     @connection = connection
@@ -9,6 +9,7 @@ class MiniSql::Builder
 
   [:set, :where2, :where, :order_by, :limit, :left_join, :join, :offset, :select].each do |k|
     define_method k do |data, args = {}|
+      @args ||= {}
       @args.merge!(args)
       @sections[k] ||= []
       @sections[k] << data
@@ -50,7 +51,7 @@ class MiniSql::Builder
       @args.merge!(args)
     end
     sql = to_sql
-    @connection.query(sql, args)
+    @connection.query(sql, @args)
   end
 
   def exec(args = nil)
@@ -58,7 +59,7 @@ class MiniSql::Builder
       @args.merge!(args)
     end
     sql = to_sql
-    @connection.query(sql, args)
+    @connection.exec(sql, @args)
   end
 
 end
