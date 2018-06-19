@@ -168,7 +168,28 @@ def sequel_pluck_title_id
   s
 end
 
-results = [ar_title_id, ar_title_id_pluck, pg_title_id, mini_sql_title_id, sequel_pluck_title_id, sequel_select_title_id]
+# usage is not really recommended but just to compare to pluck lets have it
+def mini_sql_title_id_query_single
+  s = +""
+  i = 0
+  r = $mini_sql.query_single(-"select id, title from topics order by id limit 1000")
+  while i < r.length
+    s << r[i].to_s
+    s << r[i+1]
+    i += 2
+  end
+  s
+end
+
+results = [
+  ar_title_id,
+  ar_title_id_pluck,
+  pg_title_id,
+  mini_sql_title_id,
+  sequel_pluck_title_id,
+  sequel_select_title_id,
+  mini_sql_title_id_query_single
+]
 
 exit(-1) unless results.uniq.length == 1
 
@@ -241,12 +262,6 @@ Benchmark.ips do |r|
       n -= 1
     end
   end
-  r.report("sequel title id pluck") do |n|
-    while n > 0
-      sequel_pluck_title_id
-      n -= 1
-    end
-  end
   r.report("pg select title id") do |n|
     while n > 0
       pg_title_id
@@ -259,30 +274,58 @@ Benchmark.ips do |r|
       n -= 1
     end
   end
+  r.report("sequel title id pluck") do |n|
+    while n > 0
+      sequel_pluck_title_id
+      n -= 1
+    end
+  end
+  r.report("mini_sql query_single title id") do |n|
+    while n > 0
+      mini_sql_title_id_query_single
+      n -= 1
+    end
+  end
   r.compare!
 end
 
 
 # Calculating -------------------------------------
-#   ar select title id    144.043  (± 1.4%) i/s -    728.000  in   5.055454s
-# ar select title id pluck
-#                         712.818  (± 1.5%) i/s -      3.570k in   5.009412s
-# sequel title id select
-#                         927.011  (± 1.8%) i/s -      4.655k in   5.023228s
-# sequel title id pluck
-#                           1.183k (± 3.2%) i/s -      5.967k in   5.048635s
-#   pg select title id      1.040k (± 1.4%) i/s -      5.253k in   5.051679s
-# mini_sql select title id
-#                           1.139k (± 2.5%) i/s -      5.712k in   5.016383s
+#        wide topic ar      2.383k (± 4.9%) i/s -     12.005k in   5.050490s
+#    wide topic sequel      3.449k (± 3.2%) i/s -     17.591k in   5.104951s
+#        wide topic pg      7.345k (± 1.2%) i/s -     37.352k in   5.086015s
+#  wide topic mini sql      7.536k (± 1.4%) i/s -     38.220k in   5.072834s
 #
 # Comparison:
-# sequel title id pluck:     1183.1 i/s
-# mini_sql select title id:     1139.3 i/s - same-ish: difference falls within error
-#   pg select title id:     1040.1 i/s - 1.14x  slower
-# sequel title id select:      927.0 i/s - 1.28x  slower
-# ar select title id pluck:      712.8 i/s - 1.66x  slower
-#   ar select title id:      144.0 i/s - 8.21x  slower
+#  wide topic mini sql:     7535.8 i/s
+#        wide topic pg:     7345.1 i/s - same-ish: difference falls within error
+#    wide topic sequel:     3449.4 i/s - 2.18x  slower
+#        wide topic ar:     2382.9 i/s - 3.16x  slower
 #
+# Calculating -------------------------------------
+#   ar select title id    131.572  (± 3.8%) i/s -    658.000  in   5.008231s
+# ar select title id pluck
+#                         696.233  (± 3.7%) i/s -      3.519k in   5.061335s
+# sequel title id select
+#                         916.841  (± 3.7%) i/s -      4.655k in   5.084499s
+#   pg select title id      1.002k (± 4.0%) i/s -      5.044k in   5.040584s
+# mini_sql select title id
+#                           1.106k (± 2.4%) i/s -      5.618k in   5.084423s
+# sequel title id pluck
+#                           1.181k (± 3.5%) i/s -      5.980k in   5.069815s
+# mini_sql query_single title id
+#                           1.171k (± 3.1%) i/s -      5.880k in   5.025793s
+#
+# Comparison:
+# sequel title id pluck:     1181.0 i/s
+# mini_sql query_single title id:     1171.1 i/s - same-ish: difference falls within error
+# mini_sql select title id:     1105.6 i/s - 1.07x  slower
+#   pg select title id:     1002.2 i/s - 1.18x  slower
+# sequel title id select:      916.8 i/s - 1.29x  slower
+# ar select title id pluck:      696.2 i/s - 1.70x  slower
+#   ar select title id:      131.6 i/s - 8.98x  slower
+#
+
 # to run deep analysis run
 # MemoryProfiler.report do
 #   ar
