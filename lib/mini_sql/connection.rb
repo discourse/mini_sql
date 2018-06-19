@@ -3,6 +3,7 @@
 module MiniSql
   class Connection
     attr_reader :raw_connection
+    attr_reader :type_map
 
     def self.default_deserializer_cache
       @deserializer_cache ||= DeserializerCache.new
@@ -24,12 +25,15 @@ module MiniSql
     # @param raw_connection [PG::Connection] an active connection to PG
     # @param deserializer_cache [MiniSql::DeserializerCache] a cache of field names to deserializer, can be nil
     # @param type_map [PG::TypeMap] a type mapper for all results returned, can be nil
-    def initialize(raw_connection, deserializer_cache: nil, type_map: nil, param_encoder: nil)
+    def initialize(raw_connection, deserializer_cache: nil, param_encoder: nil)
       # TODO adapter to support other databases
       @raw_connection = raw_connection
       @deserializer_cache = deserializer_cache || Connection.default_deserializer_cache
-      @type_map = type_map || Connection.type_map(raw_connection)
       @param_encoder = param_encoder || InlineParamEncoder.new(self)
+    end
+
+    def type_map
+      @type_map ||= self.class.type_map(raw_connection)
     end
 
     # Returns a flat array containing all results.
@@ -40,7 +44,7 @@ module MiniSql
     # @return [Object] a flat array containing all results
     def query_single(sql, *params)
       result = run(sql, params)
-      result.type_map = @type_map
+      result.type_map = type_map
       if result.nfields == 1
         result.column_values(0)
       else
@@ -63,7 +67,7 @@ module MiniSql
 
     def query(sql, *params)
       result = run(sql, params)
-      result.type_map = @type_map
+      result.type_map = type_map
       @deserializer_cache.materialize(result)
     ensure
       result.clear if result
@@ -78,7 +82,7 @@ module MiniSql
 
     def query_hash(sql, *params)
       result = run(sql, params)
-      result.type_map = @type_map
+      result.type_map = type_map
       result.to_a
     ensure
       result.clear
