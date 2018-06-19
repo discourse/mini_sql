@@ -14,6 +14,8 @@ module MiniSql
           map = PG::BasicTypeMapForResults.new(conn)
           map.add_coder(MiniSql::Coders::NumericCoder.new(name: "numeric", oid: 1700, format: 0))
           map.add_coder(MiniSql::Coders::IPAddrCoder.new(name: "inet", oid: 869, format: 0))
+          map.add_coder(MiniSql::Coders::IPAddrCoder.new(name: "cidr", oid: 650, format: 0))
+          map.add_coder(PG::TextDecoder::String.new(name: "tsvector", oid: 3614, format: 0))
         end
     end
 
@@ -72,6 +74,14 @@ module MiniSql
       result.cmd_tuples
     ensure
       result.clear if result
+    end
+
+    def query_hash(sql, *params)
+      result = run(sql, params)
+      result.type_map = @type_map
+      result.to_a
+    ensure
+      result.clear
     end
 
     def build(sql)

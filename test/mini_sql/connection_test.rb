@@ -109,6 +109,21 @@ class MiniSql::TestConnection < MiniTest::Test
     # assert(delta < 5)
   end
 
+  def test_tsvector
+    vect = @connection.query_single("select 'hello world'::tsvector").first
+    assert_equal("'hello' 'world'", vect)
+  end
+
+  def test_cidr
+    ip = @connection.query_single("select network(inet('1.2.3.4/24'))").first
+    assert_equal(IPAddr.new('1.2.3.0/24'), ip)
+  end
+
+  def test_query_hash
+    r = @connection.query_hash("select 1 as a, '2' as b union select 3, 'e'")
+    assert_equal([{ "a" => 1, "b" => '2' }, { "a" => 3, "b" => "e" }], r)
+  end
+
   def test_too_many_params_hash
     r = @connection.query_single("select 100", {a: 99})
     assert_equal(r[0], 100)
