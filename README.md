@@ -27,14 +27,35 @@ conn = MiniSql::Connection.new(pg_conn)
 puts conn.exec('update table set column = 1 where id in (1,2)')
 # returns 2 if 2 rows changed
 
-conn.query("select 1 id, 'bob' name") do |user|
+conn.query("select 1 id, 'bob' name").each do |user|
   puts user.name # bob
   puts user.id # 1
 end
 
-puts conn.query_single('select 1 union select 2')
+p conn.query_single('select 1 union select 2')
 # [1,2]
 
+p conn.query_hash('select 1 as a, 2 as b union select 3, 4')
+# [{"a" => 1, "b"=> 1},{"a" => 3, "b" => 4}
+```
+
+## The query builder
+
+You can use the simple query builder interface to compose queries.
+
+```ruby
+builder = conn.build("select * from topics /*where*/ /*limit*/")
+
+if look_for_something
+  builder.where("title = :title", title: 'something')
+end
+
+builder.limit(20)
+
+builder.query.each do |t|
+  puts t.id
+  puts t.title
+end
 ```
 
 ## Is it fast?
@@ -47,14 +68,18 @@ As a rule it will outperform similar naive PG code while remaining safe.
 pg_conn = PG.connect(db_name: 'my_db')
 
 # this is slower, and less safe
-pg_conn.async_exec('select * from table') do |r|
+result = pg_conn.async_exec('select * from table')
+result.each do |r|
   name = r['name']
 end
+# ideally you want to remember to run r.clear here
 
 # this is faster and safer
 conn = MiniSql::Connection.new(pg_conn)
-conn.query('select * from table') do |r|
-  name = r.name
+r = conn.query('select * from table')
+
+r.each do |row|
+  name = row.name
 end
 ```
 
