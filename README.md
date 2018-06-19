@@ -60,7 +60,7 @@ end
 
 ## Is it fast?
 
-Yes, it is very fast, see benchmarks [the bench directory](https://github.com/discourse/mini_sql/tree/master/bench)
+Yes, it is very fast. See benchmarks in [the bench directory](https://github.com/discourse/mini_sql/tree/master/bench).
 
 As a rule it will outperform similar naive PG code while remaining safe.
 
