@@ -32,9 +32,9 @@ class MiniSql::Builder
       when :left_join
         joined = v.map { |item| "LEFT JOIN " << item }.join("\n")
       when :limit
-        joined = "LIMIT " << v.last.to_s
+        joined = "LIMIT " << v.last.to_i.to_s
       when :offset
-        joined = "OFFSET " << v.last.to_s
+        joined = "OFFSET " << v.last.to_i.to_s
       when :order_by
         joined = "ORDER BY " << v.join(" , ")
       when :set
