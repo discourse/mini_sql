@@ -55,7 +55,7 @@ class MiniSql::Builder
   [:query, :query_single, :query_hash, :exec].each do |m|
     class_eval <<~RUBY
       def #{m}(hash_args = nil)
-        hash_args = @args.merge(hash_args) if hash_args
+        hash_args = @args.merge(hash_args) if hash_args && @args
         @connection.#{m}(to_sql, hash_args || @args)
       end
     RUBY

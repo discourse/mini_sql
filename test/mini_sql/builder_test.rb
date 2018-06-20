@@ -73,6 +73,19 @@ class MiniSql::TestBuilder < MiniTest::Test
     assert_equal([7,8], @connection.query_single("select * from ta"))
   end
 
+  def test_accepts_params_at_end
+    builder = @connection.build("select :bob as a")
+    r = builder.query_hash(bob: 1)
+    assert_equal([{"a" => 1}], r)
+  end
+
+  def test_accepts_params_at_end
+    builder = @connection.build("select :bob as a /*where*/")
+    builder.where('1 = :one', one: 1)
+    r = builder.query_hash(bob: 1)
+    assert_equal([{"a" => 1}], r)
+  end
+
   def test_offset_limit
     @connection.exec("create temp table ta(x int)")
     @connection.exec("insert into ta(x) values(1),(2),(3)")
