@@ -84,6 +84,9 @@ class MiniSql::TestBuilder < MiniTest::Test
     builder.where('1 = :one', one: 1)
     r = builder.query_hash(bob: 1)
     assert_equal([{"a" => 1}], r)
+
+    r = builder.query_hash(bob: 1, one: 2)
+    assert_equal([], r)
   end
 
   def test_offset_limit

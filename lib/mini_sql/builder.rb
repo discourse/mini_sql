@@ -11,9 +11,9 @@ class MiniSql::Builder
 
   [:set, :where2, :where, :order_by, :limit, :left_join, :join, :offset, :select].each do |k|
     define_method k do |data, *args|
-      if Hash === args && args.length > 0
+      if args && (args.length == 1) && (Hash === args[0])
         @args ||= {}
-        @args.merge!(args)
+        @args.merge!(args[0])
       elsif args && args.length > 0
         data = @connection.param_encoder.encode(data, *args)
       end

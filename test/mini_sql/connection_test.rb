@@ -148,4 +148,9 @@ class MiniSql::TestConnection < MiniTest::Test
     assert_equal(true, r[0].read_attribute_for_serialization(:bool))
   end
 
+  def test_to_h
+    r = @connection.query("select true as bool, 1 as num").first.to_h
+    assert_equal({bool: true, num: 1 }, r)
+  end
+
 end

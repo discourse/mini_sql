@@ -40,14 +40,24 @@ module MiniSql
 
       Class.new do
         attr_accessor(*fields)
+
+        # AM serializer support
         alias :read_attribute_for_serialization :send
 
-        instance_eval <<~RUBY
-        def materialize(pg_result, index)
-          r = self.new
-          #{col=-1; fields.map{|f| "r.#{f} = pg_result.getvalue(index, #{col+=1})"}.join("; ")}
+        def to_h
+          r = {}
+          instance_variables.each do |f|
+            r[f.to_s.sub('@','').to_sym] = instance_variable_get(f)
+          end
           r
         end
+
+        instance_eval <<~RUBY
+          def materialize(pg_result, index)
+            r = self.new
+            #{col=-1; fields.map{|f| "r.#{f} = pg_result.getvalue(index, #{col+=1})"}.join("; ")}
+            r
+          end
         RUBY
       end
     end
