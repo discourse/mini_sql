@@ -2,8 +2,7 @@
 
 module MiniSql
   class Connection
-    attr_reader :raw_connection
-    attr_reader :type_map
+    attr_reader :raw_connection, :type_map, :param_encoder
 
     def self.default_deserializer_cache
       @deserializer_cache ||= DeserializerCache.new
@@ -100,7 +99,7 @@ module MiniSql
 
     def run(sql, params)
       if params && params.length > 0
-        sql = @param_encoder.encode(sql, *params)
+        sql = param_encoder.encode(sql, *params)
       end
       raw_connection.async_exec(sql)
     end

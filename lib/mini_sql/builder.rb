@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class MiniSql::Builder
 
   def initialize(connection, template)
@@ -8,9 +10,13 @@ class MiniSql::Builder
   end
 
   [:set, :where2, :where, :order_by, :limit, :left_join, :join, :offset, :select].each do |k|
-    define_method k do |data, args = {}|
+    define_method k do |data, *args|
       @args ||= {}
-      @args.merge!(args)
+      if Hash === args
+        @args.merge!(args)
+      elsif args && args.length > 0
+        data = @connection.param_encoder.encode(data, *args)
+      end
       @sections[k] ||= []
       @sections[k] << data
       self
@@ -24,21 +30,21 @@ class MiniSql::Builder
       joined = nil
       case k
       when :select
-        joined = "SELECT " << v.join(" , ")
+        joined = (+"SELECT ") << v.join(" , ")
       when :where, :where2
-        joined = "WHERE " << v.map { |c| "(" << c << ")" }.join(" AND ")
+        joined = (+"WHERE ") << v.map { |c| (+"(") << c << ")" }.join(" AND ")
       when :join
-        joined = v.map { |item| "JOIN " << item }.join("\n")
+        joined = v.map { |item| (+"JOIN ") << item }.join("\n")
       when :left_join
-        joined = v.map { |item| "LEFT JOIN " << item }.join("\n")
+        joined = v.map { |item| (+"LEFT JOIN ") << item }.join("\n")
       when :limit
-        joined = "LIMIT " << v.last.to_i.to_s
+        joined = (+"LIMIT ") << v.last.to_i.to_s
       when :offset
-        joined = "OFFSET " << v.last.to_i.to_s
+        joined = (+"OFFSET ") << v.last.to_i.to_s
       when :order_by
-        joined = "ORDER BY " << v.join(" , ")
+        joined = (+"ORDER BY ") << v.join(" , ")
       when :set
-        joined = "SET " << v.join(" , ")
+        joined = (+"SET ") << v.join(" , ")
       end
 
       sql.sub!("/*#{k}*/", joined)
@@ -46,20 +52,13 @@ class MiniSql::Builder
     sql
   end
 
-  def query(args = nil)
-    if args
-      @args.merge!(args)
-    end
-    sql = to_sql
-    @connection.query(sql, @args)
-  end
-
-  def exec(args = nil)
-    if args
-      @args.merge!(args)
-    end
-    sql = to_sql
-    @connection.exec(sql, @args)
+  [:query, :query_single, :query_hash, :exec].each do |m|
+    class_eval <<~RUBY
+      def #{m}(hash_args = nil)
+        hash_args = @args.merge(hash_args) if hash_args
+        @connection.#{m}(to_sql, hash_args || @args)
+      end
+    RUBY
   end
 
 end
