@@ -11,8 +11,8 @@ class MiniSql::Builder
 
   [:set, :where2, :where, :order_by, :limit, :left_join, :join, :offset, :select].each do |k|
     define_method k do |data, *args|
-      @args ||= {}
-      if Hash === args
+      if Hash === args && args.length > 0
+        @args ||= {}
         @args.merge!(args)
       elsif args && args.length > 0
         data = @connection.param_encoder.encode(data, *args)
@@ -56,7 +56,13 @@ class MiniSql::Builder
     class_eval <<~RUBY
       def #{m}(hash_args = nil)
         hash_args = @args.merge(hash_args) if hash_args && @args
-        @connection.#{m}(to_sql, hash_args || @args)
+        hash_args ||= @args
+
+        if hash_args
+          @connection.#{m}(to_sql, hash_args)
+        else
+          @connection.#{m}(to_sql)
+        end
       end
     RUBY
   end
