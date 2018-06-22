@@ -46,6 +46,8 @@ You can use the simple query builder interface to compose queries.
 ```ruby
 builder = conn.build("select * from topics /*where*/ /*limit*/")
 
+builder.where('created_at > ?', Time.now - 400)
+
 if look_for_something
   builder.where("title = :title", title: 'something')
 end
@@ -57,6 +59,8 @@ builder.query.each do |t|
   puts t.title
 end
 ```
+
+The builder allows for `order_by`, `where`, `select`, `set`, `limit`, `join`, `left_join` and `offset`.
 
 ## Is it fast?
 
@@ -85,10 +89,15 @@ end
 
 ## Safety
 
-In current version of the PG gem you should be careful to clear results. If you do not you risk memory bloat.
+In PG gem version 1.0 and below you should be careful to clear results. If you do not you risk memory bloat.
 See: [Sam's blog post](https://samsaffron.com/archive/2018/06/13/ruby-x27-s-external-malloc-problem).
 
 MiniSql is careful to always clear results as soon as possible.
+
+
+## I want more features!
+
+MiniSql is designed to be very minimal. Even though the query builder and type materializer give you a lot of mileage, it is not intended to be a fully fledged ORM. If you are looking for an ORM I recommend investigating ActiveRecord or Sequel which provide significantly more features.
 
 ## Development
 
