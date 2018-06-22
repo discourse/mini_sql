@@ -227,7 +227,7 @@ end
 #
 #
 # NOTE PG version 1.0.0 has a slow time materializer, these
-# are the numbers for it PG 1.0:
+# are the numbers for PG 1.0:
 #
 # Calculating -------------------------------------
 #      ar select times     22.904  (± 0.0%) i/s -    116.000  in   5.065917s
