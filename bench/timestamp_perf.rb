@@ -224,3 +224,26 @@ end
 #         sequel times:       30.5 i/s - 1.90x  slower
 #      ar select times:       22.5 i/s - 2.57x  slower
 #
+#
+#
+# NOTE PG version 1.0.0 has a slow time materializer, these
+# are the numbers for it PG 1.0:
+#
+# Calculating -------------------------------------
+#      ar select times     22.904  (± 0.0%) i/s -    116.000  in   5.065917s
+#       ar pluck times     32.127  (± 3.1%) i/s -    162.000  in   5.045460s
+#         sequel times     31.142  (± 0.0%) i/s -    156.000  in   5.010265s
+#             pg times     26.907  (± 0.0%) i/s -    136.000  in   5.055405s
+#       mini sql times     27.741  (± 0.0%) i/s -    140.000  in   5.048010s
+#   sequel pluck times     34.768  (± 2.9%) i/s -    174.000  in   5.006688s
+# mini_sql query_single times
+#                          28.216  (± 3.5%) i/s -    142.000  in   5.036051s
+#
+# Comparison:
+#   sequel pluck times:       34.8 i/s
+#       ar pluck times:       32.1 i/s - 1.08x  slower
+#         sequel times:       31.1 i/s - 1.12x  slower
+# mini_sql query_single times:       28.2 i/s - 1.23x  slower
+#       mini sql times:       27.7 i/s - 1.25x  slower
+#             pg times:       26.9 i/s - 1.29x  slower
+#      ar select times:       22.9 i/s - 1.52x  slower
