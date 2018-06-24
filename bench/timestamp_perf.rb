@@ -11,7 +11,7 @@ gemfile do
   gem 'benchmark-ips'
   gem 'sequel', github: 'jeremyevans/sequel'
   gem 'sequel_pg', github: 'jeremyevans/sequel_pg', require: 'sequel'
-  gem 'swift-db-postgres', github: 'deepfryed/swift-db-postgres'
+  # gem 'swift-db-postgres', github: 'deepfryed/swift-db-postgres'
 end
 
 require 'sequel'
@@ -91,21 +91,43 @@ end
 
 $mini_sql = MiniSql::Connection.new($conn)
 
-def pg_times(l=1000)
+def pg_times_params(l=1000)
   s = +""
   # use the safe pattern here
   r = $conn.async_exec_params(-"select time1, time2 from timestamps order by id limit $1", [l])
   r.type_map = $mini_sql.type_map
+
   i = 0
-  while i < r.ntuples
-    s << r.getvalue(i,0).iso8601
-    s << r.getvalue(i,1).iso8601
+  a = r.values
+  n = a.length
+
+  while i < n
+    s << a[i][0].iso8601
+    s << a[i][1].iso8601
     i += 1
   end
   r.clear
   s
 end
 
+def pg_times(l=1000)
+  s = +""
+  # use the safe pattern here
+  r = $conn.async_exec("select time1, time2 from timestamps order by id limit #{l}")
+  r.type_map = $mini_sql.type_map
+
+  i = 0
+  a = r.values
+  n = a.length
+
+  while i < n
+    s << a[i][0].iso8601
+    s << a[i][1].iso8601
+    i += 1
+  end
+  r.clear
+  s
+end
 
 def mini_sql_times(l=1000)
   s = +""
@@ -134,9 +156,10 @@ def sequel_pluck_times(l=1000)
   s
 end
 
+$memo_query = DB[:timestamps].limit(1000)
 def sequel_raw_times(l=1000)
   s = +""
-  DB[:timestamps].limit(1000).map([:time1, :time1]).each do |t|
+  $memo_query.map([:time1, :time1]).each do |t|
     s << t[0].iso8601
     s << t[1].iso8601
   end
@@ -156,44 +179,42 @@ def mini_sql_times_single(l=1000)
   s
 end
 
-$swift = Swift::DB::Postgres.new(db: "test_db", user: 'sam', password: 'password')
-
-def swift_select_times(l=1000)
-  s = ""
-  r = $swift.execute("select time1, time2 from timestamps order by id limit $1", l)
-  r.each do |row|
-    s << row[:time1].iso8601
-    s << row[:time2].iso8601
-  end
-  s
-end
+# $swift = Swift::DB::Postgres.new(db: "test_db", user: 'sam', password: 'password')
+#
+# def swift_select_times(l=1000)
+#   s = ""
+#   r = $swift.execute("select time1, time2 from timestamps order by id limit $1", l)
+#   r.each do |row|
+#     s << row[:time1].iso8601
+#     s << row[:time2].iso8601
+#   end
+#   s
+# end
 
 
 results = [
   ar_select_times,
   ar_pluck_times,
   pg_times,
+  pg_times_params,
   mini_sql_times,
   mini_sql_times_single,
   sequel_times,
   sequel_pluck_times,
   sequel_raw_times,
-  # can not compare correctly as it is returning DateTime no Time
+  # can not compare correctly as it is returning DateTime not Time
   # swift_select_times.gsub("+00:00", "Z")
 ]
 
 exit(-1) unless results.uniq.length == 1
 
 Benchmark.ips do |r|
-  r.report("ar select times") do |n|
+  r.warmup = 10
+  r.time = 5
+
+  r.report("mini_sql query_single times") do |n|
     while n > 0
-      ar_select_times
-      n -= 1
-    end
-  end
-  r.report("ar pluck times") do |n|
-    while n > 0
-      ar_pluck_times
+      mini_sql_times_single
       n -= 1
     end
   end
@@ -203,7 +224,13 @@ Benchmark.ips do |r|
       n -= 1
     end
   end
-  r.report("pg times") do |n|
+  r.report("pg times async_exec values") do |n|
+    while n > 0
+      pg_times_params
+      n -= 1
+    end
+  end
+  r.report("pg times async_exec_params values") do |n|
     while n > 0
       pg_times
       n -= 1
@@ -221,43 +248,38 @@ Benchmark.ips do |r|
       n -= 1
     end
   end
-  r.report("mini_sql query_single times") do |n|
-    while n > 0
-      mini_sql_times_single
-      n -= 1
-    end
-  end
   r.report("sequel raw times") do |n|
     while n > 0
       sequel_raw_times
       n -= 1
     end
   end
+  r.report("ar select times") do |n|
+    while n > 0
+      ar_select_times
+      n -= 1
+    end
+  end
+  r.report("ar pluck times") do |n|
+    while n > 0
+      ar_pluck_times
+      n -= 1
+    end
+  end
   r.compare!
 end
 
-# Comparison:
-#   swift_select_times:      222.4 i/s
-# mini_sql query_single times:       99.8 i/s - 2.23x  slower
-#       mini sql times:       97.1 i/s - 2.29x  slower
-#             pg times:       87.0 i/s - 2.56x  slower
-#       ar pluck times:       31.5 i/s - 7.05x  slower
-#      ar select times:       22.5 i/s - 9.89x  slower
-#   sequel pluck times:       10.9 i/s - 20.42x  slower
-#         sequel times:       10.4 i/s - 21.37x  slower
-#
-# NOTE PG version 1.0.0 has a slower time materializer
-#
-# if we force it we get:
-# 
-#   swift_select_times:      222.7 i/s
-# mini_sql query_single times:       48.4 i/s - 4.60x  slower
-#       mini sql times:       46.4 i/s - 4.80x  slower
-#             pg times:       44.2 i/s - 5.03x  slower
-#       ar pluck times:       32.5 i/s - 6.85x  slower
-#      ar select times:       22.1 i/s - 10.06x  slower
-#   sequel pluck times:       10.9 i/s - 20.50x  slower
-#         sequel times:       10.4 i/s - 21.43x  slower
-#
-# swift has a super fast implementation, still need to determine
-# why pg is so far behind
+
+
+# pg times async_exec_params values:       99.7 i/s
+# pg times async_exec values:       98.7 i/s - same-ish: difference falls within error
+# mini_sql query_single times:       96.5 i/s - same-ish: difference falls within error
+#       mini sql times:       95.7 i/s - same-ish: difference falls within error
+#   sequel pluck times:       94.9 i/s - same-ish: difference falls within error
+#     sequel raw times:       93.7 i/s - 1.06x  slower
+#         sequel times:       79.9 i/s - 1.25x  slower
+#       ar pluck times:       30.7 i/s - 3.25x  slower
+#      ar select times:       21.8 i/s - 4.57x  slower
+
+# NOTE PG version 1.0.0 has a much slower time materializer
+# NOTE 2: on Mac numbers are far closer Time parsing on mac is slow
