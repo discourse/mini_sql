@@ -166,6 +166,8 @@ results = [
   mini_sql_times_single,
   sequel_times,
   sequel_pluck_times,
+  # this is a big odd, but not a blocker
+  swift_select_times.gsub("+00:00", "Z")
 ]
 
 exit(-1) unless results.uniq.length == 1
