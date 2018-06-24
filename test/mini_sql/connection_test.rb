@@ -100,13 +100,12 @@ class MiniSql::TestConnection < MiniTest::Test
     delta = Time.now - r[0]
     assert(delta < 5)
 
-    # TODO
-    # @connection.exec('create temp table dating (x timestamp without time zone)')
-    # @connection.exec('insert into dating values(?)', t)
-    # d = @connection.query_single('select * from dating').first
-    #
-    # delta = Time.now - d
-    # assert(delta < 5)
+    @connection.exec('create temp table dating (x timestamp without time zone)')
+    @connection.exec('insert into dating values(?)', t)
+    d = @connection.query_single('select * from dating').first
+
+    delta = Time.now - d
+    assert(delta < 5)
   end
 
   def test_tsvector

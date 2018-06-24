@@ -94,6 +94,10 @@ See: [Sam's blog post](https://samsaffron.com/archive/2018/06/13/ruby-x27-s-exte
 
 MiniSql is careful to always clear results as soon as possible.
 
+## Timestamp decoding
+
+MiniSql's default type mapper prefers treating `timestamp without time zone` columns as utc. This is done to ensure widest amount of compatability and is a departure from the default in the PG 1.0 gem. If you wish to amend behavior feel free to pass in a custom type_map.
+
 
 ## I want more features!
 

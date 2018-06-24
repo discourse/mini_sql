@@ -9,8 +9,9 @@ gemfile do
   gem 'activemodel'
   gem 'memory_profiler'
   gem 'benchmark-ips'
-  gem 'sequel'
-  gem 'sequel_pg', require: 'sequel'
+  gem 'sequel', github: 'jeremyevans/sequel'
+  gem 'sequel_pg', github: 'jeremyevans/sequel_pg', require: 'sequel'
+  gem 'swift-db-postgres', github: 'deepfryed/swift-db-postgres'
 end
 
 require 'sequel'
@@ -24,6 +25,7 @@ ActiveRecord::Base.establish_connection(
   :database => "test_db"
 )
 
+Sequel.default_timezone = :utc
 DB = Sequel.postgres('test_db')
 
 pg = ActiveRecord::Base.connection.raw_connection
@@ -143,21 +145,30 @@ def mini_sql_times_single(l=1000)
   s
 end
 
+$swift = Swift::DB::Postgres.new(db: "test_db", user: 'sam', password: 'password')
+
+def swift_select_times(l=1000)
+  s = ""
+  r = $swift.execute("select time1, time2 from timestamps order by id limit $1", l)
+  r.each do |row|
+    s << row[:time1].iso8601
+    s << row[:time2].iso8601
+  end
+  s
+end
+
 
 results = [
-  ar_select_times(1),
-  ar_pluck_times(1),
-  pg_times(1),
-  mini_sql_times(1),
-  sequel_times(1),
-  sequel_pluck_times(1),
-  mini_sql_times_single(1)
+  ar_select_times,
+  ar_pluck_times,
+  pg_times,
+  mini_sql_times,
+  mini_sql_times_single,
+  sequel_times,
+  sequel_pluck_times,
 ]
 
-# we have 3 valid representations, one has +0 other Z and other +10
-# we can normalize I guess but it adds cost to everyone
-exit(-1) unless results.uniq.length == 3
-
+exit(-1) unless results.uniq.length == 1
 
 Benchmark.ips do |r|
   r.report("ar select times") do |n|
@@ -202,48 +213,37 @@ Benchmark.ips do |r|
       n -= 1
     end
   end
+  r.report("swift_select_times") do |n|
+    while n > 0
+      swift_select_times
+      n -= 1
+    end
+  end
   r.compare!
 end
 
-# Calculating -------------------------------------
-#      ar select times     22.531  (± 0.0%) i/s -    114.000  in   5.060996s
-#       ar pluck times     31.217  (± 3.2%) i/s -    156.000  in   5.001190s
-#         sequel times     30.533  (± 3.3%) i/s -    153.000  in   5.012778s
-#             pg times     54.264  (± 1.8%) i/s -    275.000  in   5.068361s
-#       mini sql times     54.726  (± 1.8%) i/s -    275.000  in   5.025643s
-#   sequel pluck times     34.116  (± 2.9%) i/s -    171.000  in   5.014347s
-# mini_sql query_single times
-#                          57.944  (± 1.7%) i/s -    290.000  in   5.006644s
-#
 # Comparison:
-# mini_sql query_single times:       57.9 i/s
-#       mini sql times:       54.7 i/s - 1.06x  slower
-#             pg times:       54.3 i/s - 1.07x  slower
-#   sequel pluck times:       34.1 i/s - 1.70x  slower
-#       ar pluck times:       31.2 i/s - 1.86x  slower
-#         sequel times:       30.5 i/s - 1.90x  slower
-#      ar select times:       22.5 i/s - 2.57x  slower
+#   swift_select_times:      222.4 i/s
+# mini_sql query_single times:       99.8 i/s - 2.23x  slower
+#       mini sql times:       97.1 i/s - 2.29x  slower
+#             pg times:       87.0 i/s - 2.56x  slower
+#       ar pluck times:       31.5 i/s - 7.05x  slower
+#      ar select times:       22.5 i/s - 9.89x  slower
+#   sequel pluck times:       10.9 i/s - 20.42x  slower
+#         sequel times:       10.4 i/s - 21.37x  slower
 #
+# NOTE PG version 1.0.0 has a slower time materializer
 #
+# if we force it we get:
+# 
+#   swift_select_times:      222.7 i/s
+# mini_sql query_single times:       48.4 i/s - 4.60x  slower
+#       mini sql times:       46.4 i/s - 4.80x  slower
+#             pg times:       44.2 i/s - 5.03x  slower
+#       ar pluck times:       32.5 i/s - 6.85x  slower
+#      ar select times:       22.1 i/s - 10.06x  slower
+#   sequel pluck times:       10.9 i/s - 20.50x  slower
+#         sequel times:       10.4 i/s - 21.43x  slower
 #
-# NOTE PG version 1.0.0 has a slow time materializer, these
-# are the numbers for PG 1.0:
-#
-# Calculating -------------------------------------
-#      ar select times     22.904  (± 0.0%) i/s -    116.000  in   5.065917s
-#       ar pluck times     32.127  (± 3.1%) i/s -    162.000  in   5.045460s
-#         sequel times     31.142  (± 0.0%) i/s -    156.000  in   5.010265s
-#             pg times     26.907  (± 0.0%) i/s -    136.000  in   5.055405s
-#       mini sql times     27.741  (± 0.0%) i/s -    140.000  in   5.048010s
-#   sequel pluck times     34.768  (± 2.9%) i/s -    174.000  in   5.006688s
-# mini_sql query_single times
-#                          28.216  (± 3.5%) i/s -    142.000  in   5.036051s
-#
-# Comparison:
-#   sequel pluck times:       34.8 i/s
-#       ar pluck times:       32.1 i/s - 1.08x  slower
-#         sequel times:       31.1 i/s - 1.12x  slower
-# mini_sql query_single times:       28.2 i/s - 1.23x  slower
-#       mini sql times:       27.7 i/s - 1.25x  slower
-#             pg times:       26.9 i/s - 1.29x  slower
-#      ar select times:       22.9 i/s - 1.52x  slower
+# swift has a super fast implementation, still need to determine
+# why pg is so far behind

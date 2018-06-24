@@ -16,6 +16,16 @@ module MiniSql
           map.add_coder(MiniSql::Coders::IPAddrCoder.new(name: "inet", oid: 869, format: 0))
           map.add_coder(MiniSql::Coders::IPAddrCoder.new(name: "cidr", oid: 650, format: 0))
           map.add_coder(PG::TextDecoder::String.new(name: "tsvector", oid: 3614, format: 0))
+
+          map.rm_coder(0, 1114)
+          if defined? PG::TextDecoder::TimestampUtc
+            # treat timestamp without zone as utc
+            # new to PG 1.1
+            map.add_coder(PG::TextDecoder::TimestampUtc.new(name: "timestamp", oid: 1114, format: 0))
+          else
+            map.add_coder(MiniSql::Coders::TimestampUtc.new(name: "timestamp", oid: 1114, format: 0))
+          end
+          map
         end
     end
 
