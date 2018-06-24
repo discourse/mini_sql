@@ -268,6 +268,8 @@ Benchmark.ips do |r|
   r.compare!
 end
 
+# Linux x64 numbers
+#
 # pg times async_exec_params values:      471.5 i/s
 # pg times async_exec values:      468.3 i/s - same-ish: difference falls within error
 # mini_sql query_single times:      448.8 i/s - same-ish: difference falls within error
