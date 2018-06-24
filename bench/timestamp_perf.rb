@@ -74,8 +74,8 @@ $conn = ActiveRecord::Base.connection.raw_connection
 def ar_pluck_times(l=1000)
   s = +""
   Timestamp.limit(l).order(:id).pluck(:time1, :time2).each do |time1, time2|
-    s << time1.iso8601
-    s << time2.iso8601
+    s << time1.to_f.to_s
+    s << time2.to_f.to_s
   end
   s
 end
@@ -83,8 +83,8 @@ end
 def ar_select_times(l=1000)
   s = +""
   Timestamp.limit(l).order(:id).select(:time1, :time2).each do |t|
-    s << t.time1.iso8601
-    s << t.time2.iso8601
+    s << t.time1.to_f.to_s
+    s << t.time2.to_f.to_s
   end
   s
 end
@@ -102,8 +102,8 @@ def pg_times_params(l=1000)
   n = a.length
 
   while i < n
-    s << a[i][0].iso8601
-    s << a[i][1].iso8601
+    s << a[i][0].to_f.to_s
+    s << a[i][1].to_f.to_s
     i += 1
   end
   r.clear
@@ -121,8 +121,8 @@ def pg_times(l=1000)
   n = a.length
 
   while i < n
-    s << a[i][0].iso8601
-    s << a[i][1].iso8601
+    s << a[i][0].to_f.to_s
+    s << a[i][1].to_f.to_s
     i += 1
   end
   r.clear
@@ -132,8 +132,8 @@ end
 def mini_sql_times(l=1000)
   s = +""
   $mini_sql.query(-"select time1, time2 from timestamps order by id limit ?", l).each do |t|
-    s << t.time1.iso8601
-    s << t.time2.iso8601
+    s << t.time1.to_f.to_s
+    s << t.time2.to_f.to_s
   end
   s
 end
@@ -141,8 +141,8 @@ end
 def sequel_times(l=1000)
   s = +""
   TimestampSequel.limit(l).order(:id).select(:time1, :time2).each do |t|
-    s << t.time1.iso8601
-    s << t.time2.iso8601
+    s << t.time1.to_f.to_s
+    s << t.time2.to_f.to_s
   end
   s
 end
@@ -150,8 +150,8 @@ end
 def sequel_pluck_times(l=1000)
   s = +""
   TimestampSequel.limit(l).order(:id).select_map([:time1, :time2]).each do |t|
-    s << t[0].iso8601
-    s << t[1].iso8601
+    s << t[0].to_f.to_s
+    s << t[1].to_f.to_s
   end
   s
 end
@@ -160,8 +160,8 @@ $memo_query = DB[:timestamps].limit(1000)
 def sequel_raw_times(l=1000)
   s = +""
   $memo_query.map([:time1, :time1]).each do |t|
-    s << t[0].iso8601
-    s << t[1].iso8601
+    s << t[0].to_f.to_s
+    s << t[1].to_f.to_s
   end
   s
 end
@@ -172,8 +172,8 @@ def mini_sql_times_single(l=1000)
   i = 0
   r = $mini_sql.query_single(-"select time1, time2 from timestamps order by id limit ?", l)
   while i < r.length
-    s << r[i].iso8601
-    s << r[i+1].iso8601
+    s << r[i].to_f.to_s
+    s << r[i+1].to_f.to_s
     i += 2
   end
   s
@@ -185,8 +185,8 @@ end
 #   s = ""
 #   r = $swift.execute("select time1, time2 from timestamps order by id limit $1", l)
 #   r.each do |row|
-#     s << row[:time1].iso8601
-#     s << row[:time2].iso8601
+#     s << row[:time1].to_f.to_s
+#     s << row[:time2].to_f.to_s
 #   end
 #   s
 # end
@@ -269,17 +269,15 @@ Benchmark.ips do |r|
   r.compare!
 end
 
-
-
-# pg times async_exec_params values:       99.7 i/s
-# pg times async_exec values:       98.7 i/s - same-ish: difference falls within error
-# mini_sql query_single times:       96.5 i/s - same-ish: difference falls within error
-#       mini sql times:       95.7 i/s - same-ish: difference falls within error
-#   sequel pluck times:       94.9 i/s - same-ish: difference falls within error
-#     sequel raw times:       93.7 i/s - 1.06x  slower
-#         sequel times:       79.9 i/s - 1.25x  slower
-#       ar pluck times:       30.7 i/s - 3.25x  slower
-#      ar select times:       21.8 i/s - 4.57x  slower
+# pg times async_exec_params values:      447.9 i/s
+# pg times async_exec values:      443.8 i/s - same-ish: difference falls within error
+# mini_sql query_single times:      424.1 i/s - same-ish: difference falls within error
+#       mini sql times:      417.1 i/s - 1.07x  slower
+#   sequel pluck times:      414.3 i/s - 1.08x  slower
+#     sequel raw times:      383.2 i/s - 1.17x  slower
+#         sequel times:      368.7 i/s - 1.21x  slower
+#       ar pluck times:       30.6 i/s - 14.63x  slower
+#      ar select times:       21.9 i/s - 20.42x  slower
 
 # NOTE PG version 1.0.0 has a much slower time materializer
 # NOTE 2: on Mac numbers are far closer Time parsing on mac is slow
