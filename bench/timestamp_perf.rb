@@ -96,9 +96,11 @@ def pg_times(l=1000)
   # use the safe pattern here
   r = $conn.async_exec_params(-"select time1, time2 from timestamps order by id limit $1", [l])
   r.type_map = $mini_sql.type_map
-  r.each do |row|
-    s << row["time1"].iso8601
-    s << row["time2"].iso8601
+  i = 0
+  while i < r.ntuples
+    s << r.getvalue(i,0).iso8601
+    s << r.getvalue(i,1).iso8601
+    i += 1
   end
   r.clear
   s
@@ -126,6 +128,15 @@ end
 def sequel_pluck_times(l=1000)
   s = +""
   TimestampSequel.limit(l).order(:id).select_map([:time1, :time2]).each do |t|
+    s << t[0].iso8601
+    s << t[1].iso8601
+  end
+  s
+end
+
+def sequel_raw_times(l=1000)
+  s = +""
+  DB[:timestamps].limit(1000).map([:time1, :time1]).each do |t|
     s << t[0].iso8601
     s << t[1].iso8601
   end
@@ -166,8 +177,9 @@ results = [
   mini_sql_times_single,
   sequel_times,
   sequel_pluck_times,
-  # this is a big odd, but not a blocker
-  swift_select_times.gsub("+00:00", "Z")
+  sequel_raw_times,
+  # can not compare correctly as it is returning DateTime no Time
+  # swift_select_times.gsub("+00:00", "Z")
 ]
 
 exit(-1) unless results.uniq.length == 1
@@ -215,9 +227,9 @@ Benchmark.ips do |r|
       n -= 1
     end
   end
-  r.report("swift_select_times") do |n|
+  r.report("sequel raw times") do |n|
     while n > 0
-      swift_select_times
+      sequel_raw_times
       n -= 1
     end
   end
