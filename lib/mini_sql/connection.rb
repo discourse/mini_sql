@@ -57,11 +57,15 @@ module MiniSql
       if result.nfields == 1
         result.column_values(0)
       else
+        tuples = result.ntuples
+        fields = result.nfields
+
         array = []
         f = 0
         row = 0
-        while row < result.ntuples
-          while f < result.nfields
+
+        while row < tuples
+          while f < fields
             array << result.getvalue(row, f)
             f += 1
           end
