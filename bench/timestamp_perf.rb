@@ -158,9 +158,9 @@ end
 
 def sequel_raw_times(l=1000)
   s = +""
-  DB[:timestamps].limit(l).select_map([:time1, :time2]).each do |t|
-    s << t[0].to_f.to_s
-    s << t[1].to_f.to_s
+  DB[-"select time1, time2 from timestamps order by id limit ?", l].map([:time1, :time2]).each do |time1, time2|
+    s << time1.to_f.to_s
+    s << time2.to_f.to_s
   end
   s
 end
@@ -270,15 +270,17 @@ end
 
 # Linux x64 numbers
 #
-# pg times async_exec_params values:      471.5 i/s
-# pg times async_exec values:      468.3 i/s - same-ish: difference falls within error
-# mini_sql query_single times:      448.8 i/s - same-ish: difference falls within error
-#     sequel raw times:      444.8 i/s - 1.06x  slower
-#       mini sql times:      438.8 i/s - 1.07x  slower
-#   sequel pluck times:      435.9 i/s - 1.08x  slower
-#         sequel times:      392.8 i/s - 1.20x  slower
-#       ar pluck times:       31.4 i/s - 15.01x  slower
-#      ar select times:       22.7 i/s - 20.73x  slower
+#
+# pg times async_exec values:      441.6 i/s
+# pg times async_exec_params values:      438.5 i/s - same-ish: difference falls within error
+# mini_sql query_single times:      436.3 i/s - same-ish: difference falls within error
+#     sequel raw times:      426.1 i/s - same-ish: difference falls within error
+#       mini sql times:      417.1 i/s - 1.06x  slower
+#   sequel pluck times:      414.0 i/s - 1.07x  slower
+#         sequel times:      378.5 i/s - 1.17x  slower
+#       ar pluck times:       30.8 i/s - 14.35x  slower
+#      ar select times:       22.7 i/s - 19.44x  slower
+#
 
 # NOTE PG version 1.0.0 has a much slower time materializer
 # NOTE 2: on Mac numbers are far closer Time parsing on mac is slow
