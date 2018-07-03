@@ -1,9 +1,7 @@
-require 'test_helper'
-
-class MiniSql::TestBuilder < MiniTest::Test
+module MiniSql::BuilderTests
   def setup
     pg_conn = PG.connect(dbname: 'test_mini_sql')
-    @connection = MiniSql::Connection.new(pg_conn)
+    @connection = MiniSql::Connection.get(pg_conn)
   end
 
   def test_where

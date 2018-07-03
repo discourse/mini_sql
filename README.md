@@ -18,11 +18,11 @@ Or install it yourself as:
 
 ## Usage
 
-MiniSql is a very simple, safe and fast SQL executor and mapper for PG.
+MiniSql is a very simple, safe and fast SQL executor and mapper for PG and Sqlite.
 
 ```ruby
 pg_conn = PG.connect(db_name: 'my_db')
-conn = MiniSql::Connection.new(pg_conn)
+conn = MiniSql::Connection.get(pg_conn)
 
 puts conn.exec('update table set column = 1 where id in (1,2)')
 # returns 2 if 2 rows changed
@@ -79,7 +79,7 @@ end
 # ideally you want to remember to run r.clear here
 
 # this is faster and safer
-conn = MiniSql::Connection.new(pg_conn)
+conn = MiniSql::Connection.get(pg_conn)
 r = conn.query('select * from table')
 
 r.each do |row|

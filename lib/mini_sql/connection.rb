@@ -2,47 +2,15 @@
 
 module MiniSql
   class Connection
-    attr_reader :raw_connection, :type_map, :param_encoder
 
-    def self.default_deserializer_cache
-      @deserializer_cache ||= DeserializerCache.new
-    end
-
-    def self.type_map(conn)
-      @type_map ||=
-        begin
-          map = PG::BasicTypeMapForResults.new(conn)
-          map.add_coder(MiniSql::Coders::NumericCoder.new(name: "numeric", oid: 1700, format: 0))
-          map.add_coder(MiniSql::Coders::IPAddrCoder.new(name: "inet", oid: 869, format: 0))
-          map.add_coder(MiniSql::Coders::IPAddrCoder.new(name: "cidr", oid: 650, format: 0))
-          map.add_coder(PG::TextDecoder::String.new(name: "tsvector", oid: 3614, format: 0))
-
-          map.rm_coder(0, 1114)
-          if defined? PG::TextDecoder::TimestampUtc
-            # treat timestamp without zone as utc
-            # new to PG 1.1
-            map.add_coder(PG::TextDecoder::TimestampUtc.new(name: "timestamp", oid: 1114, format: 0))
-          else
-            map.add_coder(MiniSql::Coders::TimestampUtc.new(name: "timestamp", oid: 1114, format: 0))
-          end
-          map
-        end
-    end
-
-    # Initialize a new MiniSql::Connection object
-    #
-    # @param raw_connection [PG::Connection] an active connection to PG
-    # @param deserializer_cache [MiniSql::DeserializerCache] a cache of field names to deserializer, can be nil
-    # @param type_map [PG::TypeMap] a type mapper for all results returned, can be nil
-    def initialize(raw_connection, deserializer_cache: nil, param_encoder: nil)
-      # TODO adapter to support other databases
-      @raw_connection = raw_connection
-      @deserializer_cache = deserializer_cache || Connection.default_deserializer_cache
-      @param_encoder = param_encoder || InlineParamEncoder.new(self)
-    end
-
-    def type_map
-      @type_map ||= self.class.type_map(raw_connection)
+    def self.get(raw_connection, options = {})
+      if (defined? ::PG::Connection) && (PG::Connection === raw_connection)
+        Postgres::Connection.new(raw_connection, options)
+      elsif (defined? ::SQLite3::Database) && (SQLite3::Database === raw_connection)
+        Sqlite::Connection.new(raw_connection, options)
+      else
+        raise ArgumentError, 'unknown connection type!'
+      end
     end
 
     # Returns a flat array containing all results.
@@ -52,53 +20,19 @@ module MiniSql
     # @param params [Array or Hash], params to apply to query
     # @return [Object] a flat array containing all results
     def query_single(sql, *params)
-      result = run(sql, params)
-      result.type_map = type_map
-      if result.nfields == 1
-        result.column_values(0)
-      else
-        tuples = result.ntuples
-        fields = result.nfields
-
-        array = []
-        f = 0
-        row = 0
-
-        while row < tuples
-          while f < fields
-            array << result.getvalue(row, f)
-            f += 1
-          end
-          f = 0
-          row += 1
-        end
-        array
-      end
-    ensure
-      result.clear if result
+      raise NotImplementedError, "must be implemented by child connection"
     end
 
     def query(sql, *params)
-      result = run(sql, params)
-      result.type_map = type_map
-      @deserializer_cache.materialize(result)
-    ensure
-      result.clear if result
+      raise NotImplementedError, "must be implemented by child connection"
     end
 
     def exec(sql, *params)
-      result = run(sql, params)
-      result.cmd_tuples
-    ensure
-      result.clear if result
+      raise NotImplementedError, "must be implemented by child connection"
     end
 
     def query_hash(sql, *params)
-      result = run(sql, params)
-      result.type_map = type_map
-      result.to_a
-    ensure
-      result.clear
+      raise NotImplementedError, "must be implemented by child connection"
     end
 
     def build(sql)
@@ -106,16 +40,7 @@ module MiniSql
     end
 
     def escape_string(str)
-      raw_connection.escape_string(str)
-    end
-
-    private
-
-    def run(sql, params)
-      if params && params.length > 0
-        sql = param_encoder.encode(sql, *params)
-      end
-      raw_connection.async_exec(sql)
+      raise NotImplementedError, "must be implemented by child connection"
     end
 
   end

@@ -10,5 +10,14 @@ require_relative "mini_sql/builder"
 require_relative "mini_sql/inline_param_encoder"
 
 module MiniSql
-  autoload :Coders, "mini_sql/coders"
+  module Postgres
+    autoload :Coders, "mini_sql/postgres/coders"
+    autoload :Connection, "mini_sql/postgres/connection"
+    autoload :DeserializerCache, "mini_sql/postgres/deserializer_cache"
+  end
+
+  module Sqlite
+    autoload :Connection, "mini_sql/sqlite/connection"
+    autoload :DeserializerCache, "mini_sql/sqlite/deserializer_cache"
+  end
 end

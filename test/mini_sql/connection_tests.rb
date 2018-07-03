@@ -1,11 +1,4 @@
-require 'test_helper'
-
-class MiniSql::TestConnection < MiniTest::Test
-
-  def setup
-    pg_conn = PG.connect(dbname: 'test_mini_sql')
-    @connection = MiniSql::Connection.new(pg_conn)
-  end
+module MiniSql::ConnectionTests
 
   def test_can_exec_sql
     @connection.exec("create temp table testing ( a int )")
@@ -17,7 +10,7 @@ class MiniSql::TestConnection < MiniTest::Test
     rows = @connection.exec("update testing set a = 7 where a = 1")
     assert_equal(3, rows)
 
-    count = @connection.query("select count(*) from testing").first.count
+    count = @connection.query("select count(*) as count from testing").first.count
     assert_equal(3, count)
   end
 
@@ -37,24 +30,12 @@ class MiniSql::TestConnection < MiniTest::Test
     assert_equal([[1, 'two']], v)
   end
 
-  def test_inet
-    r = @connection.query("select '1.1.1.1'::inet ip").first.ip
-    assert_equal(IPAddr.new('1.1.1.1'), r)
-    assert_equal(IPAddr, r.class)
-  end
-
   def test_can_query_sql
     r = @connection.query("select 1 one").first.one
     assert_equal(1, r)
 
     r = @connection.query("select 1.1 two").first.two
     assert_equal(1.1, r)
-
-    r = @connection.query("select current_timestamp as time").first.time
-    delta = Time.now - r
-    assert(delta < 1)
-
-    r = @connection.query("select current_timestamp as time").first.time
   end
 
   def test_can_query_single
@@ -90,34 +71,6 @@ class MiniSql::TestConnection < MiniTest::Test
     assert_equal(["a", "b", "a", "b"], r)
   end
 
-  def test_supports_time_with_zone_param
-    require 'active_support'
-    require 'active_support/core_ext'
-    Time.zone = "Eastern Time (US & Canada)"
-    t = Time.zone.now
-    r = @connection.query_single("select ?::timestamp with time zone", t)
-
-    delta = Time.now - r[0]
-    assert(delta < 5)
-
-    @connection.exec('create temp table dating (x timestamp without time zone)')
-    @connection.exec('insert into dating values(?)', t)
-    d = @connection.query_single('select * from dating').first
-
-    delta = Time.now - d
-    assert(delta < 5)
-  end
-
-  def test_tsvector
-    vect = @connection.query_single("select 'hello world'::tsvector").first
-    assert_equal("'hello' 'world'", vect)
-  end
-
-  def test_cidr
-    ip = @connection.query_single("select network(inet('1.2.3.4/24'))").first
-    assert_equal(IPAddr.new('1.2.3.0/24'), ip)
-  end
-
   def test_query_hash
     r = @connection.query_hash("select 1 as a, '2' as b union select 3, 'e'")
     assert_equal([{ "a" => 1, "b" => '2' }, { "a" => 3, "b" => "e" }], r)
@@ -142,14 +95,14 @@ class MiniSql::TestConnection < MiniTest::Test
   end
 
   def test_supports_am_serialization_protocol
-    r = @connection.query("select true as bool")
-    assert_equal(true, r[0].send(:bool))
-    assert_equal(true, r[0].read_attribute_for_serialization(:bool))
+    r = @connection.query("select 1 as n")
+    assert_equal(1, r[0].send(:n))
+    assert_equal(1, r[0].read_attribute_for_serialization(:n))
   end
 
   def test_to_h
-    r = @connection.query("select true as bool, 1 as num").first.to_h
-    assert_equal({bool: true, num: 1 }, r)
+    r = @connection.query("select 'a' as str, 1 as num").first.to_h
+    assert_equal({str: 'a', num: 1 }, r)
   end
 
 end
