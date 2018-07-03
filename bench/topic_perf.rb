@@ -190,14 +190,17 @@ def mini_sql_title_id_query_single
   s
 end
 
-$swift = Swift::DB::Postgres.new(db: "test_db", user: 'sam', password: 'password')
+# connects over unix socket
+$swift = Swift::DB::Postgres.new(db: "test_db")
 
 def swift_select_title_id(l=1000)
   s = ""
+  i = 0
   r = $swift.execute("select id, title from topics order by id limit 1000")
-  r.each do |row|
-    s << row[:id].to_s
-    s << row[:title]
+  while i < r.selected_rows
+    s << r.get(i, 0).to_s
+    s << r.get(i, 1)
+    i += 1
   end
   s
 end
