@@ -98,7 +98,7 @@ module MiniSql
         result.type_map = type_map
         result.to_a
       ensure
-        result.clear
+        result.clear if result
       end
 
       def build(sql)
