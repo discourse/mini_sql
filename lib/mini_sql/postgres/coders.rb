@@ -3,7 +3,7 @@ module MiniSql
     module Coders
       class NumericCoder < PG::SimpleDecoder
         def decode(string, tuple = nil, field = nil)
-          BigDecimal.new(string)
+          BigDecimal(string)
         end
       end
 
