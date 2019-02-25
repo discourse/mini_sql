@@ -1,0 +1,3 @@
+2019-02-25 - 0.2.1
+
+- Handle `BigDecimal.new` deprecation by using `BigDecimal()` instead
