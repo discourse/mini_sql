@@ -4,8 +4,7 @@ module MiniSql
   class TestInlineParamEncoder < MiniTest::Test
 
     def setup
-      pg_conn = PG.connect(dbname: 'test_mini_sql')
-      @connection = MiniSql::Connection.get(pg_conn)
+      @connection = pg_connection
       @encoder = InlineParamEncoder.new(@connection)
     end
 
