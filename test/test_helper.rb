@@ -13,7 +13,7 @@ if RUBY_ENGINE == 'jruby'
   def pg_connection
     config = {adapter: 'postgresql', dbname: 'test_mini_sql', password: ENV['PASSWORD'] }
     pg_conn = ActiveRecord::Base.establish_connection(**config).checkout
-    MiniSql::Connection.get(pg_conn)
+    MiniSql::Connection.get(pg_conn.raw_connection)
   end
 else
   require "pg"

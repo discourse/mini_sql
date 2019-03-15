@@ -14,9 +14,8 @@ module MiniSql
       # @param raw_connection [PG::Connection] an active connection to PG
       # @param deserializer_cache [MiniSql::DeserializerCache] a cache of field names to deserializer, can be nil
       # @param type_map [PG::TypeMap] a type mapper for all results returned, can be nil
-      def initialize(connection, args = nil)
-        @connection = connection
-        @raw_connection = connection.raw_connection
+      def initialize(raw_connection, args = nil)
+        @raw_connection = raw_connection
         @deserializer_cache = (args && args[:deserializer_cache]) || self.class.default_deserializer_cache
         @param_encoder = (args && args[:param_encoder]) || InlineParamEncoder.new(self)
       end
@@ -59,7 +58,7 @@ module MiniSql
       end
 
       def escape_string(str)
-        @connection.quote_string(str)
+        raw_connection.escape_string(str)
       end
 
       private
