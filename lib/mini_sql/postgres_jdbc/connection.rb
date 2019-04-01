@@ -3,10 +3,30 @@
 module MiniSql
   module Postgres
     class Connection < MiniSql::Connection
+      class NumericCoder
+        def decode(string)
+          BigDecimal(string)
+        end
+      end
+
+      class IPAddrCoder
+        def decode(string)
+          IPAddr.new(string)
+        end
+      end
+
       attr_reader :raw_connection, :type_map, :param_encoder
 
       def self.default_deserializer_cache
         @deserializer_cache ||= DeserializerCache.new
+      end
+
+      def self.typemap
+        @type_map ||= {
+            "numeric" => NumericCoder.new,
+            "inet" => IPAddrCoder.new,
+            "cidr" => IPAddrCoder.new
+        }
       end
 
       # Initialize a new MiniSql::Postgres::Connection object
@@ -64,12 +84,14 @@ module MiniSql
       private
 
       def run(sql, params)
-        if params && params.length > 0
-          sql = param_encoder.encode(sql, *params)
-        end
-        raw_connection.execute(sql)
+        sql = param_encoder.encode(sql, *params) if params && params.length > 0
+        conn = raw_connection
+        conn.typemap = self.class.typemap
+        conn.execute(sql)
+      ensure
+        # Force unsetting of typemap since we don't want mixed AR usage to continue to use these extra converters.
+        conn.typemap = nil
       end
-
     end
   end
 end
