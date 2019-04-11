@@ -1,3 +1,7 @@
+2019-11-04 - 0.2.2
+
+- Added adapters for JRuby postgres support thanks to @enebo
+
 2019-02-25 - 0.2.1
 
 - Handle `BigDecimal.new` deprecation by using `BigDecimal()` instead
