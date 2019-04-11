@@ -1,9 +1,4 @@
 module MiniSql::BuilderTests
-  def setup
-    pg_conn = PG.connect(dbname: 'test_mini_sql')
-    @connection = MiniSql::Connection.get(pg_conn)
-  end
-
   def test_where
     builder = @connection.build("select 1 as one /*where*/")
     builder.where("1 = :zero")
