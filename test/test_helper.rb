@@ -18,6 +18,14 @@ if RUBY_ENGINE == 'jruby'
 else
   require "pg"
   require "sqlite3"
+  require "mysql2"
+
+  def mysql_connection
+    mysql_conn = Mysql2::Client.new(database: 'test_mini_sql', username: 'root')
+    mysql_conn.query("create TEMPORARY table IF NOT EXISTS for_testing ( a int )")
+    mysql_conn.query("insert into for_testing values (1)")
+    MiniSql::Connection.get(mysql_conn)
+  end
 
   def pg_connection
     pg_conn = PG.connect(dbname: 'test_mini_sql')

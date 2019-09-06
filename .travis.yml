@@ -9,11 +9,16 @@ before_install:
 cache: bundler
 sudo: false
 
+services:
+  - mysql
+
 addons:
   postgresql: 9.6
+  mysql: 5.7
 
 install:
   - createdb test_mini_sql
+  - mysql -e 'CREATE DATABASE test_mini_sql;'
   - bundle install
 
 matrix:

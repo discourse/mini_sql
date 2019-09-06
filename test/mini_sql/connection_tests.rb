@@ -56,7 +56,7 @@ module MiniSql::ConnectionTests
     assert_equal([1,2,3], r)
 
     r = @connection.query_single(
-      "select * from (select 1 x union select 2 union select 3) a where a.x in(?)",
+      "select * from (select 1 x union select 2 union select 3) a where a.x in(?) order by 1 asc",
       [[1,4,3]]
     )
 
