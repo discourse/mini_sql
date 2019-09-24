@@ -47,7 +47,7 @@ module MiniSql
         if params && params.length > 0
           sql = param_encoder.encode(sql, *params)
         end
-        raw_connection.query(sql)
+        raw_connection.query(sql, as: :hash)
       end
     end
   end
