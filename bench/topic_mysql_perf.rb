@@ -292,19 +292,18 @@ Benchmark.ips do |r|
   r.compare!
 end
 
-# Comparison:
-# mysql select title id:      486.5 i/s
-# mini_sql query_single title id:      450.3 i/s - same-ish: difference falls within error
-# sequel title id pluck:      367.9 i/s - 1.32x  slower
-# sequel title id select:      352.5 i/s - 1.38x  slower
-# mini_sql select title id:      346.2 i/s - 1.41x  slower
-# ar select title id pluck:      320.5 i/s - 1.52x  slower
-#   ar select title id:      102.8 i/s - 4.73x  slower
+Comparison:
+mysql select title id:      471.8 i/s
+mini_sql query_single title id:      447.8 i/s - same-ish: difference falls within error
+mini_sql select title id:      417.3 i/s - same-ish: difference falls within error
+sequel title id pluck:      367.8 i/s - 1.28x  slower
+sequel title id select:      335.9 i/s - 1.40x  slower
+ar select title id pluck:      311.1 i/s - 1.52x  slower
+  ar select title id:      101.9 i/s - 4.63x  slower
 
-
-# Comparison:
-#  wide topic mini sql:     7837.2 i/s
-#     wide topic mysql:     7085.7 i/s - same-ish: difference falls within error
-#    wide topic sequel:     5168.7 i/s - 1.52x  slower
-#        wide topic ar:     2631.7 i/s - 2.98x  slower
+Comparison:
+ wide topic mini sql:     6994.7 i/s
+    wide topic mysql:     6467.2 i/s - same-ish: difference falls within error
+   wide topic sequel:     4826.8 i/s - 1.45x  slower
+       wide topic ar:     2454.5 i/s - 2.85x  slower
 

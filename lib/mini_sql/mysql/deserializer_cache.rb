@@ -10,7 +10,6 @@ module MiniSql
       end
 
       def materialize(result)
-
         key = result.fields
 
         # trivial fast LRU implementation
@@ -49,7 +48,7 @@ module MiniSql
           instance_eval <<~RUBY
             def materialize(data)
               r = self.new
-              #{fields.map{|f| "r.#{f} = data[#{f.inspect}]"}.join("; ")}
+              #{col=-1; fields.map{|f| "r.#{f} = data[#{col+=1}]"}.join("; ")}
               r
             end
           RUBY
