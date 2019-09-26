@@ -12,10 +12,7 @@ module MiniSql
       end
 
       def query_single(sql, *params)
-        if params && params.length > 0
-          sql = param_encoder.encode(sql, *params)
-        end
-        raw_connection.query(sql, as: :array).to_a.flatten!
+        run(sql, :array, params).to_a.flatten!
       end
 
       def query_hash(sql, *params)
