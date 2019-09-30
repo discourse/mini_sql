@@ -148,7 +148,7 @@ def pg_title_id
   s
 end
 
-$mini_sql = MiniSql::Connection.new($conn)
+$mini_sql = MiniSql::Connection.get($conn)
 
 def mini_sql_title_id
   s = +""

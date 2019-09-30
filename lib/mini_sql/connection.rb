@@ -10,6 +10,8 @@ module MiniSql
         Postgres::Connection.new(raw_connection, options)
       elsif (defined? ::SQLite3::Database) && (SQLite3::Database === raw_connection)
         Sqlite::Connection.new(raw_connection, options)
+      elsif (defined? ::Mysql2::Client) && (Mysql2::Client === raw_connection)
+        Mysql::Connection.new(raw_connection, options)
       else
         raise ArgumentError, 'unknown connection type!'
       end

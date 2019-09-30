@@ -57,7 +57,6 @@ class MiniSql::Builder
       def #{m}(hash_args = nil)
         hash_args = @args.merge(hash_args) if hash_args && @args
         hash_args ||= @args
-
         if hash_args
           @connection.#{m}(to_sql, hash_args)
         else

@@ -35,6 +35,7 @@ Gem::Specification.new do |spec|
     spec.add_development_dependency "activerecord-jdbcpostgresql-adapter", "~> 52.2"
   else
     spec.add_development_dependency "pg", "> 1"
+    spec.add_development_dependency "mysql2"
     spec.add_development_dependency "sqlite3", "~> 1.3"
   end
 end

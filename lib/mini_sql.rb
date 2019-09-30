@@ -26,5 +26,10 @@ module MiniSql
       autoload :Connection, "mini_sql/sqlite/connection"
       autoload :DeserializerCache, "mini_sql/sqlite/deserializer_cache"
     end
+
+    module Mysql
+      autoload :Connection, "mini_sql/mysql/connection"
+      autoload :DeserializerCache, "mini_sql/mysql/deserializer_cache"
+    end
   end
 end
