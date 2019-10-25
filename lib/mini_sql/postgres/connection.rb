@@ -78,10 +78,10 @@ module MiniSql
         result.clear if result
       end
 
-      def query(sql, *params)
+      def query(sql, *params, included_module:)
         result = run(sql, params)
         result.type_map = type_map
-        @deserializer_cache.materialize(result)
+        @deserializer_cache.materialize(result, included_module)
       ensure
         result.clear if result
       end

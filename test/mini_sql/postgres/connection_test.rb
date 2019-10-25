@@ -52,4 +52,15 @@ class MiniSql::Postgres::TestConnection < MiniTest::Test
     assert(delta < 5)
   end
 
+  module Product
+    def amount_price
+      price * quantity
+    end
+  end
+
+  def test_included_module
+    r = @connection.query('select 20 price, 3 quantity', included_module: Product).first
+    assert_equal(60, r.amount_price)
+  end
+
 end

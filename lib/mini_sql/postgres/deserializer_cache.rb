@@ -9,18 +9,18 @@ module MiniSql
         @max_size = max_size || DEFAULT_MAX_SIZE
       end
 
-      def materialize(result)
-
+      def materialize(result, included_module)
         return [] if result.ntuples == 0
 
         key = result.fields
+        key << included_module.name if included_module
 
         # trivial fast LRU implementation
         materializer = @cache.delete(key)
         if materializer
           @cache[key] = materializer
         else
-          materializer = @cache[key] = new_row_matrializer(result)
+          materializer = @cache[key] = new_row_matrializer(result, included_module)
           @cache.shift if @cache.length > @max_size
         end
 
@@ -36,11 +36,13 @@ module MiniSql
 
       private
 
-      def new_row_matrializer(result)
+      def new_row_matrializer(result, included_module)
         fields = result.fields
 
         Class.new do
           attr_accessor(*fields)
+
+          include included_module if included_module
 
           # AM serializer support
           alias :read_attribute_for_serialization :send
