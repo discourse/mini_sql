@@ -9,7 +9,7 @@ module MiniSql
         @max_size = max_size || DEFAULT_MAX_SIZE
       end
 
-      def materialize(result, included_module)
+      def materialize(result, included_module = nil)
         return [] if result.ntuples == 0
 
         key = result.fields

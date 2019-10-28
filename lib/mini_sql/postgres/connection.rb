@@ -79,10 +79,14 @@ module MiniSql
       end
 
       def query(sql, *params)
-        included_module =
-          if (h = params&.first)&.is_a?(Hash)
-            h.delete(:included_module)
-          end
+        result = run(sql, params)
+        result.type_map = type_map
+        @deserializer_cache.materialize(result)
+      ensure
+        result.clear if result
+      end
+
+      def query_typed(included_module, sql, *params)
         result = run(sql, params)
         result.type_map = type_map
         @deserializer_cache.materialize(result, included_module)

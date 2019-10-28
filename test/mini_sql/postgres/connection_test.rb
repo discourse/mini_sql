@@ -58,8 +58,8 @@ class MiniSql::Postgres::TestConnection < MiniTest::Test
     end
   end
 
-  def test_included_module
-    r = @connection.query('select 20 price, 3 quantity', included_module: Product).first
+  def test_query_typed
+    r = @connection.query_typed(Product, 'select 20 price, 3 quantity').first
     assert_equal(60, r.amount_price)
   end
 
