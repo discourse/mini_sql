@@ -12,8 +12,14 @@ Gem::Specification.new do |spec|
 
   spec.summary       = %q{A fast, safe, simple direct SQL executor}
   spec.description   = %q{A fast, safe, simple direct SQL executor for PG}
-  spec.homepage      = "https://discourse.org"
+  spec.homepage      = "https://github.com/discourse/mini_sql"
   spec.license       = "MIT"
+
+  spec.metadata = {
+    "bug_tracker_uri" => "https://github.com/discourse/mini_sql/issues",
+    "source_code_uri" => "https://github.com/discourse/mini_sql",
+    "changelog_uri" => "https://github.com/discourse/mini_sql/blob/master/CHANGELOG"
+  }
 
   spec.platform = 'java' if RUBY_ENGINE == 'jruby'
 
