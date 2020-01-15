@@ -62,7 +62,7 @@ module MiniSql
       when BigDecimal then value.to_s("F")
       when Numeric then value.to_s
       when Date, Time then "'#{quoted_date(value)}'"
-      when Symbol     then "'#{escape_string(value.to_s)}'"
+      when Symbol     then "'#{conn.escape_string(value.to_s)}'"
       else raise TypeError, "can't quote #{value.class.name}"
       end
     end
