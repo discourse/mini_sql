@@ -18,6 +18,11 @@ module MiniSql
       assert_equal("select 'hello''s'", result)
     end
 
+    def test_symbol_encoding
+      result = @encoder.encode("select :str", str: :value)
+      assert_equal("select 'value'", result)
+    end
+
     def test_array_encoding
       result = @encoder.encode("select :str", str: ["a", "a'"])
       assert_equal("select 'a', 'a'''", result)
