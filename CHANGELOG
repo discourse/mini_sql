@@ -1,3 +1,7 @@
+2019-01-16 - 0.2.4
+
+- Fixed symbol param encoder
+
 2019-12-20 - 0.2.3
 
 - Added support for MySQL
