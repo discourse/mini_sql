@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'bundler/inline'
 
 gemfile do
@@ -194,7 +196,7 @@ end
 $swift = Swift::DB::Postgres.new(db: "test_db")
 
 def swift_select_title_id(l=1000)
-  s = ""
+  s = +''
   i = 0
   r = $swift.execute("select id, title from topics order by id limit 1000")
   while i < r.selected_rows
@@ -218,6 +220,48 @@ results = [
 
 exit(-1) unless results.uniq.length == 1
 
+Benchmark.ips do |r|
+  r.report("query_hash") do |n|
+    while n > 0
+      $mini_sql.query_hash("select id, title from topics order by id limit 1000").each do |hash|
+        [hash['id'], hash['title']]
+      end
+      n -= 1
+    end
+  end
+  r.report("query_array") do |n|
+    while n > 0
+      $mini_sql.query_array("select id, title from topics order by id limit 1000").each do |id, title|
+        [id, title]
+      end
+      n -= 1
+    end
+  end
+  r.report("query") do |n|
+    while n > 0
+      $mini_sql.query("select id, title from topics order by id limit 1000").each do |obj|
+        [obj.id, obj.title]
+      end
+      n -= 1
+    end
+  end
+
+  r.compare!
+end
+
+# Warming up --------------------------------------
+#          query_hash    76.000  i/100ms
+#         query_array   122.000  i/100ms
+#               query    93.000  i/100ms
+# Calculating -------------------------------------
+#          query_hash    790.105  (± 7.6%) i/s -      3.952k in   5.031705s
+#         query_array      1.223k (± 6.3%) i/s -      6.100k in   5.011810s
+#               query    956.927  (± 4.1%) i/s -      4.836k in   5.062227s
+#
+# Comparison:
+#         query_array:     1223.2 i/s
+#               query:      956.9 i/s - 1.28x  slower
+#          query_hash:      790.1 i/s - 1.55x  slower
 
 Benchmark.ips do |r|
   r.report("ar select title id") do |n|

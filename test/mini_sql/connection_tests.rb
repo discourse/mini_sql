@@ -76,6 +76,11 @@ module MiniSql::ConnectionTests
     assert_equal([{ "a" => 1, "b" => '2' }, { "a" => 3, "b" => "e" }], r)
   end
 
+  def test_query_array
+    r = @connection.query_array("select 1 as a, '2' as b union select 3, 'e'")
+    assert_equal([[1, '2'], [3, 'e']], r)
+  end
+
   def test_too_many_params_hash
     r = @connection.query_single("select 100", {a: 99})
     assert_equal(r[0], 100)

@@ -37,6 +37,12 @@ p conn.query_single('select 1 union select 2')
 
 p conn.query_hash('select 1 as a, 2 as b union select 3, 4')
 # [{"a" => 1, "b"=> 1},{"a" => 3, "b" => 4}
+ 
+p conn.query_array("select 1 as a, '2' as b union select 3, 'e'")
+# [[1, '2'], [3, 'e']]
+ 
+p conn.query_array("select 1 as a, '2' as b union select 3, 'e'").to_h
+# {1 => '2', 3 => 'e'}
 ```
 
 ## The query builder
@@ -63,8 +69,14 @@ end
 The builder allows for `order_by`, `where`, `select`, `set`, `limit`, `join`, `left_join` and `offset`.
 
 ## Is it fast?
-
 Yes, it is very fast. See benchmarks in [the bench directory](https://github.com/discourse/mini_sql/tree/master/bench).
+
+**Comparison mini_sql methods**
+```
+query_array:     1223.2 i/s
+      query:      956.9 i/s - 1.28x  slower
+ query_hash:      790.1 i/s - 1.55x  slower
+```
 
 As a rule it will outperform similar naive PG code while remaining safe.
 

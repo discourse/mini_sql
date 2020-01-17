@@ -26,6 +26,10 @@ module MiniSql
         r
       end
 
+      def query_array(sql, *params)
+        run(sql, *params)
+      end
+
       def exec(sql, *params)
 
         start = raw_connection.total_changes
