@@ -221,25 +221,25 @@ results = [
 exit(-1) unless results.uniq.length == 1
 
 Benchmark.ips do |r|
-  r.report("query_hash") do |n|
+  r.report('query_hash') do |n|
     while n > 0
-      $mini_sql.query_hash("select id, title from topics order by id limit 1000").each do |hash|
+      $mini_sql.query_hash('select id, title from topics order by id limit 1000').each do |hash|
         [hash['id'], hash['title']]
       end
       n -= 1
     end
   end
-  r.report("query_array") do |n|
+  r.report('query_array') do |n|
     while n > 0
-      $mini_sql.query_array("select id, title from topics order by id limit 1000").each do |id, title|
+      $mini_sql.query_array('select id, title from topics order by id limit 1000').to_h.each do |id, title|
         [id, title]
       end
       n -= 1
     end
   end
-  r.report("query") do |n|
+  r.report('query') do |n|
     while n > 0
-      $mini_sql.query("select id, title from topics order by id limit 1000").each do |obj|
+      $mini_sql.query('select id, title from topics order by id limit 1000').each do |obj|
         [obj.id, obj.title]
       end
       n -= 1
