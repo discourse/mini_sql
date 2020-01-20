@@ -73,9 +73,12 @@ Yes, it is very fast. See benchmarks in [the bench directory](https://github.com
 
 **Comparison mini_sql methods**
 ```
-query_array:     1223.2 i/s
-      query:      956.9 i/s - 1.28x  slower
- query_hash:      790.1 i/s - 1.55x  slower
+query_array     1351.6 i/s
+      query      963.8 i/s - 1.40x  slower
+ query_hash      787.4 i/s - 1.72x  slower
+
+query_single('select id from topics limit 1000')             2368.9 i/s
+ query_array('select id from topics limit 1000').flatten     1350.1 i/s - 1.75x  slower
 ```
 
 As a rule it will outperform similar naive PG code while remaining safe.
