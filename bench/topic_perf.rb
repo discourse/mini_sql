@@ -113,25 +113,23 @@ end
 $conn = ActiveRecord::Base.connection.raw_connection
 
 def ar_title_id_pluck
-  s = +""
+  a = []
   Topic.limit(1000).order(:id).pluck(:id, :title).each do |id, title|
-    s << id.to_s
-    s << title
+    a << [id, title]
   end
-  s
+  a
 end
 
 def ar_title_id
-  s = +""
+  a = []
   Topic.limit(1000).order(:id).select(:id, :title).each do |t|
-    s << t.id.to_s
-    s << t.title
+    a << [t.id, t.title]
   end
-  s
+  a
 end
 
 def pg_title_id
-  s = +""
+  a = []
   # use the safe pattern here
   r = $conn.async_exec(-"select id, title from topics order by id limit 1000")
 
@@ -142,106 +140,78 @@ def pg_title_id
   i = 0
   l = values.length
   while i < l
-    s << values[i][0].to_s
-    s << values[i][1]
+    a << [values[i][0], values[i][1]]
     i += 1
   end
   r.clear
-  s
+  a
 end
 
 $mini_sql = MiniSql::Connection.get($conn)
 
 def mini_sql_title_id
-  s = +""
+  a = []
   $mini_sql.query(-"select id, title from topics order by id limit 1000").each do |t|
-    s << t.id.to_s
-    s << t.title
+    a << [t.id, t.title]
   end
-  s
+  a
 end
 
 def sequel_select_title_id
-  s = +""
+  a = []
   TopicSequel.limit(1000).order(:id).select(:id, :title).each do |t|
-    s << t.id.to_s
-    s << t.title
+    a << [t.id, t.title]
   end
-  s
+  a
 end
 
 def sequel_pluck_title_id
-  s = +""
+  a = []
   TopicSequel.limit(1000).order(:id).select_map([:id, :title]).each do |t|
-    s << t[0].to_s
-    s << t[1]
+    a << [t[0], t[1]]
   end
-  s
+  a
 end
 
 # usage is not really recommended but just to compare to pluck lets have it
 def mini_sql_title_id_query_single
-  s = +""
+  a = []
   i = 0
   r = $mini_sql.query_single(-"select id, title from topics order by id limit 1000")
   while i < r.length
-    s << r[i].to_s
-    s << r[i+1]
+    a << [r[i], r[i+1]]
     i += 2
   end
-  s
+  a
 end
 
 # connects over unix socket
 $swift = Swift::DB::Postgres.new(db: "test_db")
 
 def swift_select_title_id(l=1000)
-  s = +''
   i = 0
+  a = []
   r = $swift.execute("select id, title from topics order by id limit 1000")
   while i < r.selected_rows
-    s << r.get(i, 0).to_s
-    s << r.get(i, 1)
+    a << [r.get(i, 0), r.get(i, 1)]
     i += 1
   end
-  s
+  a
 end
 
 results = [
-  ar_title_id,
-  ar_title_id_pluck,
-  pg_title_id,
-  mini_sql_title_id,
-  sequel_pluck_title_id,
-  sequel_select_title_id,
-  mini_sql_title_id_query_single,
-  swift_select_title_id
+  ar_title_id.size,
+  ar_title_id_pluck.size,
+  pg_title_id.size,
+  mini_sql_title_id.size,
+  sequel_pluck_title_id.size,
+  sequel_select_title_id.size,
+  mini_sql_title_id_query_single.size,
+  swift_select_title_id.size
 ]
 
-exit(-1) unless results.uniq.length == 1
-
-
-#Benchmark.ips do |r|
-#  r.report('string') do |n|
-#    while n > 0
-#      s = +''
-#      1_000.times { |i| s << i; s << i }
-#      n -= 1
-#    end
-#  end
-#  r.report('array') do |n|
-#    while n > 0
-#      1_000.times { |i| [i, i] }
-#      n -= 1
-#    end
-#  end
-#
-#  r.compare!
-#end
-
-# Comparison:
-#   array:    13041.2 i/s
-#  string:     4254.9 i/s - 3.06x  slower
+exit(-1) unless results.uniq.size == 1
+exit(-1) unless results.uniq.first == 1000
 
 Benchmark.ips do |r|
   r.report('query_hash') do |n|
@@ -351,25 +321,33 @@ Benchmark.ips do |r|
   r.compare!
 end
 
-
+# Comparison:
+#  pg select title id:               1270.6 i/s
+#      swift title id:               1240.6 i/s - same-ish: difference falls within error
+# mini_sql query_single title id:    1078.3 i/s - 1.18x  slower
+# sequel title id pluck:             996.5 i/s - 1.28x  slower
+# mini_sql select title id:          955.0 i/s - 1.33x  slower
+# sequel title id select:            675.4 i/s - 1.88x  slower
+# ar select title id pluck:          562.4 i/s - 2.26x  slower
+#   ar select title id:              110.9 i/s - 11.46x  slower
 
 def wide_topic_ar
-  Topic.first
+  Topic.first.title
 end
 
 def wide_topic_pg
   r = $conn.async_exec("select * from topics limit 1")
-  row = r.first
+  val = r.first['title']
   r.clear
-  row
+  val
 end
 
 def wide_topic_sequel
-  TopicSequel.first
+  TopicSequel.first.title
 end
 
 def wide_topic_mini_sql
-  $conn.query("select * from topics limit 1").first
+  $mini_sql.query("select * from topics limit 1").first.title
 end
 
 Benchmark.ips do |r|
@@ -400,24 +378,11 @@ Benchmark.ips do |r|
   r.compare!
 end
 
-
 # Comparison:
-#   pg select title id:     1519.7 i/s
-# mini_sql query_single title id:     1335.0 i/s - 1.14x  slower
-# sequel title id pluck:     1261.6 i/s - 1.20x  slower
-# mini_sql select title id:     1188.6 i/s - 1.28x  slower
-#       swift title id:     1077.5 i/s - 1.41x  slower
-# sequel title id select:      969.7 i/s - 1.57x  slower
-# ar select title id pluck:      738.7 i/s - 2.06x  slower
-#   ar select title id:      149.6 i/s - 10.16x  slower
-#
-#
-# Comparison:
-#        wide topic pg:     7474.0 i/s
-#  wide topic mini sql:     7355.2 i/s - same-ish: difference falls within error
-#    wide topic sequel:     5696.8 i/s - 1.31x  slower
-#        wide topic ar:     2515.0 i/s - 2.97x  slower
-
+#       wide topic pg:     7161.9 i/s
+# wide topic mini sql:     6197.3 i/s - 1.16x  slower
+#   wide topic sequel:     2857.1 i/s - 2.51x  slower
+#       wide topic ar:     1640.0 i/s - 4.37x  slower
 
 
 # to run deep analysis run
