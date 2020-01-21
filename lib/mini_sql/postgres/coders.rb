@@ -1,28 +1,30 @@
+# frozen_string_literal: true
+
 module MiniSql
   module Postgres
     module Coders
       class NumericCoder < PG::SimpleDecoder
-        def decode(string, tuple = nil, field = nil)
+        def decode(string, _tuple = nil, _field = nil)
           BigDecimal(string)
         end
       end
 
       class IPAddrCoder < PG::SimpleDecoder
-        def decode(string, tuple = nil, field = nil)
+        def decode(string, _tuple = nil, _field = nil)
           IPAddr.new(string)
         end
       end
 
       class TimestampUtc < PG::SimpleDecoder
         # exact same implementation as Rails here
-        ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/
+        ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/.freeze
 
-        def decode(string, tuple = nil, field = nil)
+        def decode(string, _tuple = nil, _field = nil)
           if string =~ ISO_DATETIME
-            microsec = ($7.to_r * 1_000_000).to_i
-            Time.utc $1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, microsec
+            microsec = (Regexp.last_match(7).to_r * 1_000_000).to_i
+            Time.utc Regexp.last_match(1).to_i, Regexp.last_match(2).to_i, Regexp.last_match(3).to_i, Regexp.last_match(4).to_i, Regexp.last_match(5).to_i, Regexp.last_match(6).to_i, microsec
           else
-            STDERR.puts "unexpected date time format #{string}"
+            warn "unexpected date time format #{string}"
             string
           end
         end

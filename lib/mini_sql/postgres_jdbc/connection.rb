@@ -23,9 +23,9 @@ module MiniSql
 
       def self.typemap
         @type_map ||= {
-            "numeric" => NumericCoder.new,
-            "inet" => IPAddrCoder.new,
-            "cidr" => IPAddrCoder.new
+          'numeric' => NumericCoder.new,
+          'inet' => IPAddrCoder.new,
+          'cidr' => IPAddrCoder.new
         }
       end
 
@@ -62,7 +62,7 @@ module MiniSql
 
       def exec(sql, *params)
         result = run(sql, params)
-        if result.kind_of? Integer
+        if result.is_a? Integer
           result
         else
           result.length
@@ -84,7 +84,7 @@ module MiniSql
       private
 
       def run(sql, params)
-        sql = param_encoder.encode(sql, *params) if params && params.length > 0
+        sql = param_encoder.encode(sql, *params) if params && !params.empty?
         conn = raw_connection
         conn.typemap = self.class.typemap
         conn.execute(sql)

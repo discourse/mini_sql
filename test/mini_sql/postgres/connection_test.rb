@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'test_helper'
 
 class MiniSql::Postgres::TestConnection < MiniTest::Test
@@ -24,12 +26,12 @@ class MiniSql::Postgres::TestConnection < MiniTest::Test
   end
 
   def test_bool
-    b = @connection.query_single("select true").first
+    b = @connection.query_single('select true').first
     assert_equal(true, b)
   end
 
   def test_timestamps
-    r = @connection.query("select current_timestamp as time").first.time
+    r = @connection.query('select current_timestamp as time').first.time
     delta = Time.now - r
     assert(delta < 1)
   end
@@ -37,9 +39,9 @@ class MiniSql::Postgres::TestConnection < MiniTest::Test
   def test_supports_time_with_zone_param
     require 'active_support'
     require 'active_support/core_ext'
-    Time.zone = "Eastern Time (US & Canada)"
+    Time.zone = 'Eastern Time (US & Canada)'
     t = Time.zone.now
-    r = @connection.query_single("select ?::timestamp with time zone", t)
+    r = @connection.query_single('select ?::timestamp with time zone', t)
 
     delta = Time.now - r[0]
     assert(delta < 5)
@@ -51,5 +53,4 @@ class MiniSql::Postgres::TestConnection < MiniTest::Test
     delta = Time.now - d
     assert(delta < 5)
   end
-
 end

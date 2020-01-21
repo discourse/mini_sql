@@ -13,18 +13,18 @@ module MiniSql
         @type_map ||=
           begin
             map = PG::BasicTypeMapForResults.new(conn)
-            map.add_coder(MiniSql::Postgres::Coders::NumericCoder.new(name: "numeric", oid: 1700, format: 0))
-            map.add_coder(MiniSql::Postgres::Coders::IPAddrCoder.new(name: "inet", oid: 869, format: 0))
-            map.add_coder(MiniSql::Postgres::Coders::IPAddrCoder.new(name: "cidr", oid: 650, format: 0))
-            map.add_coder(PG::TextDecoder::String.new(name: "tsvector", oid: 3614, format: 0))
+            map.add_coder(MiniSql::Postgres::Coders::NumericCoder.new(name: 'numeric', oid: 1700, format: 0))
+            map.add_coder(MiniSql::Postgres::Coders::IPAddrCoder.new(name: 'inet', oid: 869, format: 0))
+            map.add_coder(MiniSql::Postgres::Coders::IPAddrCoder.new(name: 'cidr', oid: 650, format: 0))
+            map.add_coder(PG::TextDecoder::String.new(name: 'tsvector', oid: 3614, format: 0))
 
             map.rm_coder(0, 1114)
             if defined? PG::TextDecoder::TimestampUtc
               # treat timestamp without zone as utc
               # new to PG 1.1
-              map.add_coder(PG::TextDecoder::TimestampUtc.new(name: "timestamp", oid: 1114, format: 0))
+              map.add_coder(PG::TextDecoder::TimestampUtc.new(name: 'timestamp', oid: 1114, format: 0))
             else
-              map.add_coder(MiniSql::Postgres::Coders::TimestampUtc.new(name: "timestamp", oid: 1114, format: 0))
+              map.add_coder(MiniSql::Postgres::Coders::TimestampUtc.new(name: 'timestamp', oid: 1114, format: 0))
             end
             map
           end
@@ -75,15 +75,15 @@ module MiniSql
           array
         end
       ensure
-        result.clear if result
+        result&.clear
       end
 
       def query_array(sql, *params)
         result = run(sql, params)
         result.type_map = type_map
         result.values
-       ensure
-        result.clear if result
+      ensure
+        result&.clear
       end
 
       def query(sql, *params)
@@ -91,14 +91,14 @@ module MiniSql
         result.type_map = type_map
         @deserializer_cache.materialize(result)
       ensure
-        result.clear if result
+        result&.clear
       end
 
       def exec(sql, *params)
         result = run(sql, params)
         result.cmd_tuples
       ensure
-        result.clear if result
+        result&.clear
       end
 
       def query_hash(sql, *params)
@@ -106,7 +106,7 @@ module MiniSql
         result.type_map = type_map
         result.to_a
       ensure
-        result.clear if result
+        result&.clear
       end
 
       def build(sql)
@@ -120,12 +120,9 @@ module MiniSql
       private
 
       def run(sql, params)
-        if params && params.length > 0
-          sql = param_encoder.encode(sql, *params)
-        end
+        sql = param_encoder.encode(sql, *params) if params && !params.empty?
         raw_connection.async_exec(sql)
       end
-
     end
   end
 end

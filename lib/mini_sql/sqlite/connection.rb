@@ -31,13 +31,12 @@ module MiniSql
       end
 
       def exec(sql, *params)
-
         start = raw_connection.total_changes
 
         r = run(sql, *params)
         # this is not safe for multithreading, also for DELETE from TABLE will return
         # incorrect data
-        if r.length > 0
+        if !r.empty?
           r.length
         else
           raw_connection.total_changes - start
@@ -51,15 +50,13 @@ module MiniSql
       end
 
       def escape_string(str)
-        str.gsub("'","''")
+        str.gsub("'", "''")
       end
 
       private
 
       def run(sql, *params)
-        if params && params.length > 0
-          sql = param_encoder.encode(sql, *params)
-        end
+        sql = param_encoder.encode(sql, *params) if params && !params.empty?
         if block_given?
           stmt = SQLite3::Statement.new(raw_connection, sql)
           yield stmt.execute

@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 module MiniSql
   module Postgres
     class DeserializerCache
-
       DEFAULT_MAX_SIZE = 500
 
       def initialize(max_size = nil)
@@ -10,7 +11,6 @@ module MiniSql
       end
 
       def materialize(result)
-
         return [] if result.ntuples == 0
 
         key = result.fields
@@ -43,12 +43,12 @@ module MiniSql
           attr_accessor(*fields)
 
           # AM serializer support
-          alias :read_attribute_for_serialization :send
+          alias_method :read_attribute_for_serialization, :send
 
           def to_h
             r = {}
             instance_variables.each do |f|
-              r[f.to_s.sub('@','').to_sym] = instance_variable_get(f)
+              r[f.to_s.sub('@', '').to_sym] = instance_variable_get(f)
             end
             r
           end
@@ -56,7 +56,7 @@ module MiniSql
           instance_eval <<~RUBY
             def materialize(pg_result, index)
               r = self.new
-              #{col=-1; fields.map{|f| "r.#{f} = pg_result.getvalue(index, #{col+=1})"}.join("; ")}
+              #{col = -1; fields.map { |f| "r.#{f} = pg_result.getvalue(index, #{col += 1})" }.join('; ')}
               r
             end
           RUBY

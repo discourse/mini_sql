@@ -9,10 +9,11 @@ module MiniSql
     end
 
     def encode(sql, *params)
-      return sql unless params && params.length > 0
+      return sql unless params && !params.empty?
 
       if Hash === (hash = params[0])
-        raise ArgumentError, "Only one hash param is allowed, multiple were sent" if params.length > 1
+        raise ArgumentError, 'Only one hash param is allowed, multiple were sent' if params.length > 1
+
         encode_hash(sql, hash)
       else
         encode_array(sql, params)
@@ -26,7 +27,7 @@ module MiniSql
         sql.gsub!(":#{k}") do
           # ignore ::int and stuff like that
           # $` is previous to match
-          if $` && $`[-1] != ":"
+          if $` && $`[-1] != ':'
             quote_val(v)
           else
             ":#{k}"
@@ -38,7 +39,7 @@ module MiniSql
 
     def encode_array(sql, array)
       i = -1
-      sql.gsub("?") do |p|
+      sql.gsub('?') do |_p|
         i += 1
         quote_val(array[i])
       end
@@ -56,11 +57,11 @@ module MiniSql
         end.join(', ')
       when String
         "'#{conn.escape_string(value.to_s)}'"
-      when true       then "true"
-      when false      then "false"
-      when nil        then "NULL"
-      when BigDecimal then value.to_s("F")
-      when Numeric then value.to_s
+      when true       then 'true'
+      when false      then 'false'
+      when nil        then 'NULL'
+      when BigDecimal then value.to_s('F')
+      when Numeric    then value.to_s
       when Date, Time then "'#{quoted_date(value)}'"
       when Symbol     then "'#{conn.escape_string(value.to_s)}'"
       else raise TypeError, "can't quote #{value.class.name}"

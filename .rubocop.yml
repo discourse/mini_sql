@@ -1,0 +1,25 @@
+AllCops:
+  TargetRubyVersion: 2.5
+  Exclude:
+    - bench/**
+
+Metrics/LineLength:
+  Max: 160
+
+Style/NumericPredicate:
+  EnforcedStyle: comparison
+
+Metrics/MethodLength:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Metrics/AbcSize:
+  Enabled: false
+
+Style/ClassAndModuleChildren:
+  Enabled: false
