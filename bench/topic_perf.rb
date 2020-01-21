@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'bundler/inline'
 
 gemfile do
@@ -194,7 +196,7 @@ end
 $swift = Swift::DB::Postgres.new(db: "test_db")
 
 def swift_select_title_id(l=1000)
-  s = ""
+  s = +''
   i = 0
   r = $swift.execute("select id, title from topics order by id limit 1000")
   while i < r.selected_rows
@@ -218,6 +220,84 @@ results = [
 
 exit(-1) unless results.uniq.length == 1
 
+
+#Benchmark.ips do |r|
+#  r.report('string') do |n|
+#    while n > 0
+#      s = +''
+#      1_000.times { |i| s << i; s << i }
+#      n -= 1
+#    end
+#  end
+#  r.report('array') do |n|
+#    while n > 0
+#      1_000.times { |i| [i, i] }
+#      n -= 1
+#    end
+#  end
+#
+#  r.compare!
+#end
+
+# Comparison:
+#   array:    13041.2 i/s
+#  string:     4254.9 i/s - 3.06x  slower
+
+Benchmark.ips do |r|
+  r.report('query_hash') do |n|
+    while n > 0
+      $mini_sql.query_hash('select id, title from topics order by id limit 1000').each do |hash|
+        [hash['id'], hash['title']]
+      end
+      n -= 1
+    end
+  end
+  r.report('query_array') do |n|
+    while n > 0
+      $mini_sql.query_array('select id, title from topics order by id limit 1000').each do |id, title|
+        [id, title]
+      end
+      n -= 1
+    end
+  end
+  r.report('query') do |n|
+    while n > 0
+      $mini_sql.query('select id, title from topics order by id limit 1000').each do |obj|
+        [obj.id, obj.title]
+      end
+      n -= 1
+    end
+  end
+
+  r.compare!
+end
+
+# Comparison:
+#         query_array:     1351.6 i/s
+#               query:      963.8 i/s - 1.40x  slower
+#          query_hash:      787.4 i/s - 1.72x  slower
+
+
+Benchmark.ips do |r|
+  r.report('query_single') do |n|
+    while n > 0
+      $mini_sql.query_single('select id from topics order by id limit 1000')
+      n -= 1
+    end
+  end
+  r.report('query_array') do |n|
+    while n > 0
+      $mini_sql.query_array('select id from topics order by id limit 1000').flatten
+      n -= 1
+    end
+  end
+
+  r.compare!
+end
+
+# Comparison:
+#        query_single:     2368.9 i/s
+#         query_array:     1350.1 i/s - 1.75x  slower
 
 Benchmark.ips do |r|
   r.report("ar select title id") do |n|

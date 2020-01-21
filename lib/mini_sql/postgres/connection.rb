@@ -78,6 +78,14 @@ module MiniSql
         result.clear if result
       end
 
+      def query_array(sql, *params)
+        result = run(sql, params)
+        result.type_map = type_map
+        result.values
+       ensure
+        result.clear if result
+      end
+
       def query(sql, *params)
         result = run(sql, params)
         result.type_map = type_map

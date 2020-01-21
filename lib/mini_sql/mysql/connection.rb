@@ -20,6 +20,10 @@ module MiniSql
         result.to_a
       end
 
+      def query_array(sql, *params)
+        run(sql, :array, params).to_a
+      end
+
       def exec(sql, *params)
         run(sql, :array, params)
         raw_connection.affected_rows
