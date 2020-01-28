@@ -91,7 +91,6 @@ end
 class TopicSequel < Sequel::Model(:topics)
 end
 
-
 Topic.transaction do
   topic = {
   }
@@ -186,7 +185,7 @@ def mini_sql_title_id_query_single
   r = $mini_sql.query_single(-"select id, title from topics order by id limit 1000")
   while i < r.length
     s << r[i].to_s
-    s << r[i+1]
+    s << r[i + 1]
     i += 2
   end
   s
@@ -195,7 +194,7 @@ end
 # connects over unix socket
 $swift = Swift::DB::Postgres.new(db: "test_db")
 
-def swift_select_title_id(l=1000)
+def swift_select_title_id(l = 1000)
   s = +''
   i = 0
   r = $swift.execute("select id, title from topics order by id limit 1000")
@@ -219,7 +218,6 @@ results = [
 ]
 
 exit(-1) unless results.uniq.length == 1
-
 
 #Benchmark.ips do |r|
 #  r.report('string') do |n|
@@ -276,7 +274,6 @@ end
 #         query_array:     1351.6 i/s
 #               query:      963.8 i/s - 1.40x  slower
 #          query_hash:      787.4 i/s - 1.72x  slower
-
 
 Benchmark.ips do |r|
   r.report('query_single') do |n|
@@ -351,8 +348,6 @@ Benchmark.ips do |r|
   r.compare!
 end
 
-
-
 def wide_topic_ar
   Topic.first
 end
@@ -400,7 +395,6 @@ Benchmark.ips do |r|
   r.compare!
 end
 
-
 # Comparison:
 #   pg select title id:     1519.7 i/s
 # mini_sql query_single title id:     1335.0 i/s - 1.14x  slower
@@ -418,10 +412,7 @@ end
 #    wide topic sequel:     5696.8 i/s - 1.31x  slower
 #        wide topic ar:     2515.0 i/s - 2.97x  slower
 
-
-
 # to run deep analysis run
 # MemoryProfiler.report do
 #   ar
 # end.pretty_print
-

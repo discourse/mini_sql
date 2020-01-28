@@ -91,7 +91,6 @@ end
 class TopicSequel < Sequel::Model(:topics)
 end
 
-
 Topic.transaction do
   topic = {
   }
@@ -179,7 +178,7 @@ def mini_sql_title_id_query_single
   r = $mini_sql.query_single(-"select id, title from topics order by id limit 1000")
   while i < r.length
     s << r[i].to_s
-    s << r[i+1]
+    s << r[i + 1]
     i += 2
   end
   s
@@ -196,7 +195,6 @@ results = [
 ]
 
 exit(-1) unless results.uniq.length == 1
-
 
 Benchmark.ips do |r|
   r.report("ar select title id") do |n|
@@ -243,8 +241,6 @@ Benchmark.ips do |r|
   end
   r.compare!
 end
-
-
 
 def wide_topic_ar
   Topic.first
@@ -301,10 +297,8 @@ end
 # ar select title id pluck:      317.1 i/s - 1.53x  slower
 #   ar select title id:      102.3 i/s - 4.74x  slower
 
-
 # Comparison:
 #  wide topic mini sql:     6768.7 i/s
 #     wide topic mysql:     6063.9 i/s - same-ish: difference falls within error
 #    wide topic sequel:     4908.6 i/s - same-ish: difference falls within error
 #        wide topic ar:     2630.2 i/s - 2.57x  slower
-

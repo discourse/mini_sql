@@ -67,4 +67,3 @@ class MiniSql::Builder
   end
 
 end
-

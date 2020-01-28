@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module MiniSql::BuilderTests
   def test_where
     builder = @connection.build("select 1 as one /*where*/")
@@ -63,20 +65,20 @@ module MiniSql::BuilderTests
 
     assert_equal(1, builder.exec)
 
-    assert_equal([7,8], @connection.query_single("select * from ta"))
+    assert_equal([7, 8], @connection.query_single("select * from ta"))
   end
 
   def test_accepts_params_at_end
     builder = @connection.build("select :bob as a")
     r = builder.query_hash(bob: 1)
-    assert_equal([{"a" => 1}], r)
+    assert_equal([{ "a" => 1 }], r)
   end
 
   def test_accepts_params_at_end
     builder = @connection.build("select :bob as a /*where*/")
     builder.where('1 = :one', one: 1)
     r = builder.query_hash(bob: 1)
-    assert_equal([{"a" => 1}], r)
+    assert_equal([{ "a" => 1 }], r)
 
     r = builder.query_hash(bob: 1, one: 2)
     assert_equal([], r)

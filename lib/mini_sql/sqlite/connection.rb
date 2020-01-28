@@ -51,7 +51,7 @@ module MiniSql
       end
 
       def escape_string(str)
-        str.gsub("'","''")
+        str.gsub("'", "''")
       end
 
       private

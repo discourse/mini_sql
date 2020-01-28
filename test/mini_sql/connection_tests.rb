@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module MiniSql::ConnectionTests
 
   def test_can_exec_sql
@@ -40,27 +42,27 @@ module MiniSql::ConnectionTests
 
   def test_can_query_single
     r = @connection.query_single("select 1 one union select 2")
-    assert_equal([1,2], r)
+    assert_equal([1, 2], r)
   end
 
   def test_can_query_single_multi
     r = @connection.query_single("select 1, 2 one union select 3, 4")
-    assert_equal([1,2,3,4], r)
+    assert_equal([1, 2, 3, 4], r)
   end
 
   def test_can_deal_with_arrays
-    r = @connection.query_single("select :array as array", {array: [1,2,3]})
-    assert_equal([1,2,3], r)
+    r = @connection.query_single("select :array as array", array: [1, 2, 3])
+    assert_equal([1, 2, 3], r)
 
-    r = @connection.query_single("select ? as array", [1,2,3])
-    assert_equal([1,2,3], r)
+    r = @connection.query_single("select ? as array", [1, 2, 3])
+    assert_equal([1, 2, 3], r)
 
     r = @connection.query_single(
       "select * from (select 1 x union select 2 union select 3) a where a.x in(?) order by 1 asc",
-      [[1,4,3]]
+      [[1, 4, 3]]
     )
 
-    assert_equal([1,3], r)
+    assert_equal([1, 3], r)
   end
 
   def test_multi_param
@@ -82,7 +84,7 @@ module MiniSql::ConnectionTests
   end
 
   def test_too_many_params_hash
-    r = @connection.query_single("select 100", {a: 99})
+    r = @connection.query_single("select 100", a: 99)
     assert_equal(r[0], 100)
   end
 
@@ -107,7 +109,7 @@ module MiniSql::ConnectionTests
 
   def test_to_h
     r = @connection.query("select 'a' as str, 1 as num").first.to_h
-    assert_equal({str: 'a', num: 1 }, r)
+    assert_equal({ str: 'a', num: 1 }, r)
   end
 
 end

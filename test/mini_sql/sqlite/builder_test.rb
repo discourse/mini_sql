@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'test_helper'
 
 class MiniSql::Sqlite::TestBuilder < MiniTest::Test

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'test_helper'
 
 class MiniSql::Mysql::TestBuilder < MiniTest::Test
@@ -37,7 +39,7 @@ class MiniSql::Mysql::TestBuilder < MiniTest::Test
     builder = @connection.build("select :bob as a from for_testing /*where*/ limit 1")
     builder.where('1 = :one', one: 1)
     r = builder.query_hash(bob: 1)
-    assert_equal([{"a" => 1}], r)
+    assert_equal([{ "a" => 1 }], r)
 
     r = builder.query_hash(bob: 1, one: 2)
     assert_equal([], r)
@@ -55,7 +57,7 @@ class MiniSql::Mysql::TestBuilder < MiniTest::Test
     assert_equal(0, builder.exec)
   end
 
-   def test_offset_limit
+  def test_offset_limit
     @connection.exec("create TEMPORARY table ta(x int)")
     @connection.exec("insert into ta(x) values(1),(2),(3)")
 
@@ -91,6 +93,6 @@ class MiniSql::Mysql::TestBuilder < MiniTest::Test
 
     assert_equal(1, builder.exec)
 
-    assert_equal([7,8], @connection.query_single("select * from ta"))
+    assert_equal([7, 8], @connection.query_single("select * from ta"))
   end
 end

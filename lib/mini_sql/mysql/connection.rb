@@ -49,9 +49,9 @@ module MiniSql
           sql = param_encoder.encode(sql, *params)
         end
         raw_connection.query(
-          sql, 
-          as: as, 
-          database_timezone: :utc, 
+          sql,
+          as: as,
+          database_timezone: :utc,
           application_timezone: :utc,
           cast_booleans: true,
           cast: true,

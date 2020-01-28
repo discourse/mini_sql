@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module MiniSql
   class DeserializerCache
     # method takes a raw result and converts to proper objects

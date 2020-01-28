@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'bundler/inline'
 
 gemfile do
@@ -21,8 +23,8 @@ require 'benchmark/ips'
 require 'mini_sql'
 
 ActiveRecord::Base.establish_connection(
-  :adapter => "postgresql",
-  :database => "test_db"
+  adapter: "postgresql",
+  database: "test_db"
 )
 
 Sequel.default_timezone = :utc
@@ -47,20 +49,20 @@ SQL
 class Timestamp < ActiveRecord::Base
 end
 
-class TimestampSequel< Sequel::Model(:timestamps)
+class TimestampSequel < Sequel::Model(:timestamps)
 end
-
 
 Timestamp.transaction do
   stamps = {
   }
   Timestamp.columns.each do |c|
-    stamps[c.name.to_sym] = case c.type
-                           when :integer then 1
-                           when :datetime then Time.now
-                           when :boolean then false
-                           else "HELLO WORLD" * 2
-                           end
+    stamps[c.name.to_sym] =
+      case c.type
+      when :integer then 1
+      when :datetime then Time.now
+      when :boolean then false
+      else "HELLO WORLD" * 2
+      end
   end
 
   1000.times do |id|
@@ -71,7 +73,7 @@ end
 
 $conn = ActiveRecord::Base.connection.raw_connection
 
-def ar_pluck_times(l=1000)
+def ar_pluck_times(l = 1000)
   s = +""
   Timestamp.limit(l).order(:id).pluck(:time1, :time2).each do |time1, time2|
     s << time1.to_f.to_s
@@ -80,7 +82,7 @@ def ar_pluck_times(l=1000)
   s
 end
 
-def ar_select_times(l=1000)
+def ar_select_times(l = 1000)
   s = +""
   Timestamp.limit(l).order(:id).select(:time1, :time2).each do |t|
     s << t.time1.to_f.to_s
@@ -91,7 +93,7 @@ end
 
 $mini_sql = MiniSql::Connection.new($conn)
 
-def pg_times_params(l=1000)
+def pg_times_params(l = 1000)
   s = +""
   # use the safe pattern here
   r = $conn.async_exec_params(-"select time1, time2 from timestamps order by id limit $1", [l])
@@ -110,7 +112,7 @@ def pg_times_params(l=1000)
   s
 end
 
-def pg_times(l=1000)
+def pg_times(l = 1000)
   s = +""
   # use the safe pattern here
   r = $conn.async_exec("select time1, time2 from timestamps order by id limit #{l}")
@@ -129,7 +131,7 @@ def pg_times(l=1000)
   s
 end
 
-def mini_sql_times(l=1000)
+def mini_sql_times(l = 1000)
   s = +""
   $mini_sql.query(-"select time1, time2 from timestamps order by id limit ?", l).each do |t|
     s << t.time1.to_f.to_s
@@ -138,7 +140,7 @@ def mini_sql_times(l=1000)
   s
 end
 
-def sequel_times(l=1000)
+def sequel_times(l = 1000)
   s = +""
   TimestampSequel.limit(l).order(:id).select(:time1, :time2).each do |t|
     s << t.time1.to_f.to_s
@@ -147,7 +149,7 @@ def sequel_times(l=1000)
   s
 end
 
-def sequel_pluck_times(l=1000)
+def sequel_pluck_times(l = 1000)
   s = +""
   TimestampSequel.limit(l).order(:id).select_map([:time1, :time2]).each do |t|
     s << t[0].to_f.to_s
@@ -156,7 +158,7 @@ def sequel_pluck_times(l=1000)
   s
 end
 
-def sequel_raw_times(l=1000)
+def sequel_raw_times(l = 1000)
   s = +""
   DB[-"select time1, time2 from timestamps order by id limit ?", l].map([:time1, :time2]).each do |time1, time2|
     s << time1.to_f.to_s
@@ -166,13 +168,13 @@ def sequel_raw_times(l=1000)
 end
 
 # usage is not really recommended but just to compare to pluck lets have it
-def mini_sql_times_single(l=1000)
+def mini_sql_times_single(l = 1000)
   s = +""
   i = 0
   r = $mini_sql.query_single(-"select time1, time2 from timestamps order by id limit ?", l)
   while i < r.length
     s << r[i].to_f.to_s
-    s << r[i+1].to_f.to_s
+    s << r[i + 1].to_f.to_s
     i += 2
   end
   s
@@ -189,7 +191,6 @@ end
 #   end
 #   s
 # end
-
 
 results = [
   ar_select_times,

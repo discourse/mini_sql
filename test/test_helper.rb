@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 $LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
 require "mini_sql"
 
@@ -11,7 +13,7 @@ if RUBY_ENGINE == 'jruby'
   require 'activerecord-jdbcpostgresql-adapter'
 
   def pg_connection
-    config = {adapter: 'postgresql', dbname: 'test_mini_sql', password: ENV['PASSWORD'] }
+    config = { adapter: 'postgresql', dbname: 'test_mini_sql', password: ENV['PASSWORD'] }
     pg_conn = ActiveRecord::Base.establish_connection(**config).checkout
     MiniSql::Connection.get(pg_conn.raw_connection)
   end

@@ -4,7 +4,7 @@ module MiniSql
   class Connection
 
     def self.get(raw_connection, options = {})
-      if (defined? ::PG::Connection) && (PG::Connection === raw_connection) 
+      if (defined? ::PG::Connection) && (PG::Connection === raw_connection)
         Postgres::Connection.new(raw_connection, options)
       elsif (defined? ::ArJdbc)
         Postgres::Connection.new(raw_connection, options)
