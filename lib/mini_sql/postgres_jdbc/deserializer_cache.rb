@@ -11,7 +11,7 @@ module MiniSql
         @max_size = max_size || DEFAULT_MAX_SIZE
       end
 
-      def materialize(result)
+      def materialize(result, decorator_module = nil)
 
         return [] if result.ntuples == 0
 
@@ -25,6 +25,8 @@ module MiniSql
           materializer = @cache[key] = new_row_matrializer(result)
           @cache.shift if @cache.length > @max_size
         end
+
+        materializer.include(decorator_module) if decorator_module
 
         i = 0
         r = []

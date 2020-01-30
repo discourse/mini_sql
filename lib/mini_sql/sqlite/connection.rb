@@ -50,6 +50,12 @@ module MiniSql
         end
       end
 
+      def query_decorator(decorator, sql, *params)
+        run(sql, *params) do |set|
+          deserializer_cache.materialize(set, decorator)
+        end
+      end
+
       def escape_string(str)
         str.gsub("'", "''")
       end

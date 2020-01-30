@@ -94,6 +94,14 @@ module MiniSql
         result.clear if result
       end
 
+      def query_decorator(decorator, sql, *params)
+        result = run(sql, params)
+        result.type_map = type_map
+        @deserializer_cache.materialize(result, decorator)
+      ensure
+        result.clear if result
+      end
+
       def exec(sql, *params)
         result = run(sql, params)
         result.cmd_tuples
