@@ -224,27 +224,27 @@ exit(-1) unless results.uniq.length == 1
 class TopicDraper < Draper::Decorator
   delegate :id
 
-  def title_without_hello
-    object.title.gsub('HELLO')
+  def title_bang
+    object.title + '!!!'
   end
 end
 
 # https://ruby-doc.org/stdlib-2.5.1/libdoc/delegate/rdoc/SimpleDelegator.html
 class TopicSimpleDelegator < SimpleDelegator
-  def title_without_hello
-    title.gsub('HELLO')
+  def title_bang
+    title + '!!!'
   end
 end
 
 class TopicArModel < Topic
-  def title_without_hello
-    title.gsub('HELLO')
+  def title_bang
+    title + '!!!'
   end
 end
 
 module TopicDecorator
-  def title_without_hello
-    title.gsub('HELLO')
+  def title_bang
+    title + '!!!'
   end
 end
 
@@ -252,7 +252,7 @@ Benchmark.ips do |r|
   r.report('query_decorator') do |n|
     while n > 0
       $mini_sql.query_decorator(TopicDecorator, 'select id, title from topics order by id limit 1000').each do |obj|
-        obj.title_without_hello
+        obj.title_bang
         obj.id
       end
       n -= 1
@@ -262,7 +262,7 @@ Benchmark.ips do |r|
     while n > 0
       $mini_sql.query('select id, title from topics order by id limit 1000').each do |obj|
         d_obj = obj.extend(TopicDecorator)
-        d_obj.title_without_hello
+        d_obj.title_bang
         d_obj.id
       end
       n -= 1
@@ -272,7 +272,7 @@ Benchmark.ips do |r|
     while n > 0
       $mini_sql.query('select id, title from topics order by id limit 1000').each do |obj|
         d_obj = TopicDraper.new(obj)
-        d_obj.title_without_hello
+        d_obj.title_bang
         d_obj.id
       end
       n -= 1
@@ -282,7 +282,7 @@ Benchmark.ips do |r|
     while n > 0
       $mini_sql.query('select id, title from topics order by id limit 1000').each do |obj|
         d_obj = TopicSimpleDelegator.new(obj)
-        d_obj.title_without_hello
+        d_obj.title_bang
         d_obj.id
       end
       n -= 1
@@ -291,7 +291,7 @@ Benchmark.ips do |r|
   r.report('query') do |n|
     while n > 0
       $mini_sql.query('select id, title from topics order by id limit 1000').each do |obj|
-        obj.title.gsub('HELLO')
+        obj.title + '!!!'
         obj.id
       end
       n -= 1
@@ -300,7 +300,7 @@ Benchmark.ips do |r|
   r.report('ar model') do |n|
     while n > 0
       TopicArModel.limit(1000).order(:id).select(:id, :title).each do |obj|
-        obj.title_without_hello
+        obj.title_bang
         obj.id
       end
       n -= 1
@@ -311,12 +311,12 @@ Benchmark.ips do |r|
 end
 
 # Comparison:
-#                query:      735.8 i/s
-#      query_decorator:      720.3 i/s - same-ish: difference falls within error
-#     simple_delegator:      453.4 i/s - 1.62x  slower
-#               extend:      446.0 i/s - 1.65x  slower
-#               draper:      378.6 i/s - 1.94x  slower
-#             ar model:      110.0 i/s - 6.69x  slower
+#      query_decorator:      818.2 i/s
+#                query:      816.5 i/s - same-ish: difference falls within error
+#               extend:      500.9 i/s - 1.63x  slower
+#     simple_delegator:      477.9 i/s - 1.71x  slower
+#               draper:      404.0 i/s - 2.03x  slower
+#             ar model:      106.8 i/s - 7.66x  slower
 
 Benchmark.ips do |r|
   r.report('query_hash') do |n|
