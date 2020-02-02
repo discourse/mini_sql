@@ -236,6 +236,12 @@ class TopicSimpleDelegator < SimpleDelegator
   end
 end
 
+class TopicDecoratorSequel < TopicSequel
+  def title_bang
+    title + '!!!'
+  end
+end
+
 class TopicArModel < Topic
   def title_bang
     title + '!!!'
@@ -306,17 +312,27 @@ Benchmark.ips do |r|
       n -= 1
     end
   end
+  r.report('sequel model') do |n|
+    while n > 0
+      TopicDecoratorSequel.limit(1000).order(:id).select(:id, :title).each do |obj|
+        obj.title_bang
+        obj.id
+      end
+      n -= 1
+    end
+  end
 
   r.compare!
 end
 
 # Comparison:
-#      query_decorator:      818.2 i/s
-#                query:      816.5 i/s - same-ish: difference falls within error
-#               extend:      500.9 i/s - 1.63x  slower
-#     simple_delegator:      477.9 i/s - 1.71x  slower
-#               draper:      404.0 i/s - 2.03x  slower
-#             ar model:      106.8 i/s - 7.66x  slower
+#                query:      828.4 i/s
+#      query_decorator:      819.3 i/s - same-ish: difference falls within error
+#         sequel model:      672.4 i/s - 1.23x  slower
+#               extend:      519.4 i/s - 1.59x  slower
+#     simple_delegator:      496.8 i/s - 1.67x  slower
+#               draper:      416.2 i/s - 1.99x  slower
+#             ar model:      113.4 i/s - 7.30x  slower
 
 Benchmark.ips do |r|
   r.report('query_hash') do |n|
