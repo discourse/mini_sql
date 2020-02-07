@@ -14,6 +14,7 @@ gemfile do
   gem 'sequel', github: 'jeremyevans/sequel'
   gem 'sequel_pg', github: 'jeremyevans/sequel_pg', require: 'sequel'
   gem 'swift-db-postgres', github: 'deepfryed/swift-db-postgres'
+  gem 'draper'
 end
 
 require 'sequel'
@@ -219,27 +220,119 @@ results = [
 
 exit(-1) unless results.uniq.length == 1
 
-#Benchmark.ips do |r|
-#  r.report('string') do |n|
-#    while n > 0
-#      s = +''
-#      1_000.times { |i| s << i; s << i }
-#      n -= 1
-#    end
-#  end
-#  r.report('array') do |n|
-#    while n > 0
-#      1_000.times { |i| [i, i] }
-#      n -= 1
-#    end
-#  end
-#
-#  r.compare!
-#end
+# https://github.com/drapergem/draper
+class TopicDraper < Draper::Decorator
+  delegate :id
+
+  def title_bang
+    object.title + '!!!'
+  end
+end
+
+# https://ruby-doc.org/stdlib-2.5.1/libdoc/delegate/rdoc/SimpleDelegator.html
+class TopicSimpleDelegator < SimpleDelegator
+  def title_bang
+    title + '!!!'
+  end
+end
+
+class TopicDecoratorSequel < TopicSequel
+  def title_bang
+    title + '!!!'
+  end
+end
+
+class TopicArModel < Topic
+  def title_bang
+    title + '!!!'
+  end
+end
+
+module TopicDecorator
+  def title_bang
+    title + '!!!'
+  end
+end
+
+Benchmark.ips do |r|
+  r.report('query_decorator') do |n|
+    while n > 0
+      $mini_sql.query_decorator(TopicDecorator, 'select id, title from topics order by id limit 1000').each do |obj|
+        obj.title_bang
+        obj.id
+      end
+      n -= 1
+    end
+  end
+  r.report('extend') do |n|
+    while n > 0
+      $mini_sql.query('select id, title from topics order by id limit 1000').each do |obj|
+        d_obj = obj.extend(TopicDecorator)
+        d_obj.title_bang
+        d_obj.id
+      end
+      n -= 1
+    end
+  end
+  r.report('draper') do |n|
+    while n > 0
+      $mini_sql.query('select id, title from topics order by id limit 1000').each do |obj|
+        d_obj = TopicDraper.new(obj)
+        d_obj.title_bang
+        d_obj.id
+      end
+      n -= 1
+    end
+  end
+  r.report('simple_delegator') do |n|
+    while n > 0
+      $mini_sql.query('select id, title from topics order by id limit 1000').each do |obj|
+        d_obj = TopicSimpleDelegator.new(obj)
+        d_obj.title_bang
+        d_obj.id
+      end
+      n -= 1
+    end
+  end
+  r.report('query') do |n|
+    while n > 0
+      $mini_sql.query('select id, title from topics order by id limit 1000').each do |obj|
+        obj.title + '!!!'
+        obj.id
+      end
+      n -= 1
+    end
+  end
+  r.report('ar model') do |n|
+    while n > 0
+      TopicArModel.limit(1000).order(:id).select(:id, :title).each do |obj|
+        obj.title_bang
+        obj.id
+      end
+      n -= 1
+    end
+  end
+  r.report('sequel model') do |n|
+    while n > 0
+      TopicDecoratorSequel.limit(1000).order(:id).select(:id, :title).each do |obj|
+        obj.title_bang
+        obj.id
+      end
+      n -= 1
+    end
+  end
+
+  r.compare!
+end
 
 # Comparison:
-#   array:    13041.2 i/s
-#  string:     4254.9 i/s - 3.06x  slower
+#                query:      828.4 i/s
+#      query_decorator:      819.3 i/s - same-ish: difference falls within error
+#         sequel model:      672.4 i/s - 1.23x  slower
+#               extend:      519.4 i/s - 1.59x  slower
+#     simple_delegator:      496.8 i/s - 1.67x  slower
+#               draper:      416.2 i/s - 1.99x  slower
+#             ar model:      113.4 i/s - 7.30x  slower
 
 Benchmark.ips do |r|
   r.report('query_hash') do |n|

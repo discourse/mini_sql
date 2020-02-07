@@ -112,4 +112,15 @@ module MiniSql::ConnectionTests
     assert_equal({ str: 'a', num: 1 }, r)
   end
 
+  module ProductDecorator
+    def amount_price
+      price * quantity
+    end
+  end
+
+  def test_query_decorator
+    r = @connection.query_decorator(ProductDecorator, 'select 20 price, 3 quantity').first
+    assert_equal(60, r.amount_price)
+  end
+
 end

@@ -60,6 +60,11 @@ module MiniSql
         @deserializer_cache.materialize(result)
       end
 
+      def query_decorator(decorator, sql, *params)
+        result = run(sql, params)
+        @deserializer_cache.materialize(result, decorator)
+      end
+
       def exec(sql, *params)
         result = run(sql, params)
         if result.kind_of? Integer

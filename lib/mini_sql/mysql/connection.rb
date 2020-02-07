@@ -34,6 +34,11 @@ module MiniSql
         @deserializer_cache.materialize(result)
       end
 
+      def query_decorator(decorator, sql, *params)
+        result = run(sql, :array, params)
+        @deserializer_cache.materialize(result, decorator)
+      end
+
       def escape_string(str)
         raw_connection.escape(str)
       end

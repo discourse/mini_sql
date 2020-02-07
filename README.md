@@ -32,6 +32,17 @@ conn.query("select 1 id, 'bob' name").each do |user|
   puts user.id # 1
 end
 
+# extend result objects with additional method
+module ProductDecorator
+  def amount_price
+    price * quantity
+  end
+end
+
+conn.query_decorator(ProductDecorator, "select 20 price, 3 quantity").each do |user|
+  puts user.amount_price # 60
+end
+
 p conn.query_single('select 1 union select 2')
 # [1,2]
 
