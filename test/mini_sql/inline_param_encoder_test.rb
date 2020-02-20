@@ -30,6 +30,11 @@ module MiniSql
       assert_equal("select 'a', 'a'''", result)
     end
 
+    def test_empty_array_encoding
+      result = @encoder.encode("select :str", str: [])
+      assert_equal("select NULL", result)
+    end
+
     def test_encode_times
       t = Time.parse('2010-10-01T02:22:00Z')
       result = @encoder.encode("select :t", t: t)
