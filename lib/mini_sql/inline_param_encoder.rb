@@ -50,20 +50,19 @@ module MiniSql
 
     def quote_val(value)
       case value
+      when String     then "'#{conn.escape_string(value.to_s)}'"
+      when Numeric    then value.to_s
+      when BigDecimal then value.to_s("F")
+      when Date, Time then "'#{quoted_date(value)}'"
+      when Symbol     then "'#{conn.escape_string(value.to_s)}'"
+      when true       then "true"
+      when false      then "false"
+      when nil        then "NULL"
       when []         then "NULL"
       when Array
         value.map do |v|
           quote_val(v)
         end.join(', ')
-      when String
-        "'#{conn.escape_string(value.to_s)}'"
-      when true       then "true"
-      when false      then "false"
-      when nil        then "NULL"
-      when BigDecimal then value.to_s("F")
-      when Numeric then value.to_s
-      when Date, Time then "'#{quoted_date(value)}'"
-      when Symbol     then "'#{conn.escape_string(value.to_s)}'"
       else raise TypeError, "can't quote #{value.class.name}"
       end
     end
