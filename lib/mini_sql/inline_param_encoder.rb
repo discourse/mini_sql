@@ -50,6 +50,7 @@ module MiniSql
 
     def quote_val(value)
       case value
+      when []         then "NULL"
       when Array
         value.map do |v|
           quote_val(v)
