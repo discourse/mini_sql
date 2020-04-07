@@ -1,3 +1,7 @@
+2020-04-07 - 0.2.5
+
+- Added support for custom type maps with Postgres connections
+
 2019-01-16 - 0.2.4
 
 - Fixed symbol param encoder

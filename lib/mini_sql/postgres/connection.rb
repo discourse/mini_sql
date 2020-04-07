@@ -39,6 +39,7 @@ module MiniSql
         @raw_connection = raw_connection
         @deserializer_cache = (args && args[:deserializer_cache]) || self.class.default_deserializer_cache
         @param_encoder = (args && args[:param_encoder]) || InlineParamEncoder.new(self)
+        @type_map = args && args[:type_map]
       end
 
       def type_map

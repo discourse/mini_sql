@@ -9,6 +9,15 @@ class MiniSql::Postgres::TestConnection < MiniTest::Test
 
   include MiniSql::ConnectionTests
 
+  def test_custom_type_map
+    pg_conn = PG.connect(dbname: 'test_mini_sql')
+    map = PG::TypeMapByOid.new
+    cnn = MiniSql::Connection.get(pg_conn, type_map: map)
+    assert_equal(map, cnn.type_map)
+    # OID type map is limited and just does text
+    assert_equal("1", cnn.query("select 1 a").first.a)
+  end
+
   def test_inet
     r = @connection.query("select '1.1.1.1'::inet ip").first.ip
     assert_equal(IPAddr.new('1.1.1.1'), r)

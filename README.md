@@ -124,6 +124,39 @@ MiniSql is careful to always clear results as soon as possible.
 
 MiniSql's default type mapper prefers treating `timestamp without time zone` columns as utc. This is done to ensure widest amount of compatability and is a departure from the default in the PG 1.0 gem. If you wish to amend behavior feel free to pass in a custom type_map.
 
+## Custom type maps
+
+When using Postgres, native type mapping implementation is used. This is roughly
+implemented as:
+
+```ruby
+type_map = PG::BasicTypeMapForResults.new(conn)
+# additional specific decoders
+```
+
+Initializing the basic type map for Postgres can be a costly operation. You may
+wish to amend the type mapper so for example you only return strings:
+
+```
+# maybe you do not want Integer
+p cnn.query("select a 1").first.a
+"1"
+```
+
+To specify a different type mapper for your results use:
+
+```
+MiniSql::Connections.get(pg_connection, type_map: custom_type_map)
+```
+
+In the case of Rails you can opt to use the type mapper Rails uses with:
+
+```
+pg_cnn = ActiveRecord::Base.connection.raw_connection
+mini_sql_cnn = MiniSql::Connection.get(pg_cnn, type_map: pg_cnn.type_map_for_results)
+```
+
+Note the type mapper for Rails may miss some of the mapping MiniSql ships with such as `IPAddr`, MiniSql is also careful to use the very efficient TimestampUtc decoders where available.
 
 ## I want more features!
 
