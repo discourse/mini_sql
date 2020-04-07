@@ -130,9 +130,11 @@ When using Postgres, native type mapping implementation is used. This is roughly
 implemented as:
 
 ```ruby
-type_map = PG::BasicTypeMapForResults.new(conn)
+type_map ||= PG::BasicTypeMapForResults.new(conn)
 # additional specific decoders
 ```
+
+The type mapper instansitated once on-demand at boot and reused by all mini_sql connections.
 
 Initializing the basic type map for Postgres can be a costly operation. You may
 wish to amend the type mapper so for example you only return strings:
