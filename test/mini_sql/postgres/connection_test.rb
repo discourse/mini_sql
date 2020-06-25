@@ -63,4 +63,81 @@ class MiniSql::Postgres::TestConnection < MiniTest::Test
     assert(delta < 5)
   end
 
+  def test_query_each_hash
+    query = "select 1 a, 2 b union all select 3,4 union all select 5,6"
+    rows = []
+    @connection.query_each_hash(query) do |row|
+      rows << row
+    end
+
+    assert_equal(rows.length, 3)
+
+    assert_equal(rows[0]["a"], 1)
+    assert_equal(rows[0]["b"], 2)
+
+    assert_equal(rows[1]["a"], 3)
+    assert_equal(rows[1]["b"], 4)
+
+    assert_equal(rows[2]["a"], 5)
+    assert_equal(rows[2]["b"], 6)
+
+    row = nil
+    @connection.query_each_hash("select :a a", a: 1) do |r|
+      row = r
+    end
+
+    assert_equal(row["a"], 1)
+  end
+
+  def test_query_each
+    query = "select 1 a, 2 b union all select 3,4 union all select 5,6"
+    rows = []
+    @connection.query_each(query) do |row|
+      rows << row
+    end
+
+    assert_equal(rows.length, 3)
+
+    assert_equal(rows[0].a, 1)
+    assert_equal(rows[0].b, 2)
+
+    assert_equal(rows[1].a, 3)
+    assert_equal(rows[1].b, 4)
+
+    assert_equal(rows[2].a, 5)
+    assert_equal(rows[2].b, 6)
+
+    row = nil
+    @connection.query_each("select :a a", a: 1) do |r|
+      row = r
+    end
+
+    assert_equal(row.a, 1)
+  end
+
+  def test_bad_usage_query_each
+    @connection.query_each("select 1 a") do
+      assert_raises(PG::UnableToSend) do
+        @connection.query_each("select 1 b") do
+        end
+      end
+    end
+
+    # should work, as we are done
+    @connection.query_each("select 1 a") {}
+
+    assert_raises(StandardError) do
+      # block must be supplied
+      @connection.query_each("select 1 a")
+    end
+  end
+
+  def test_unamed_query
+    row = @connection.query("select 1,2 two,3").first
+
+    assert_equal(row.column0, 1)
+    assert_equal(row.two, 2)
+    assert_equal(row.column2, 3)
+  end
+
 end

@@ -31,11 +31,23 @@ module MiniSql
       raise NotImplementedError, "must be implemented by child connection"
     end
 
-    def exec(sql, *params)
+    def query_hash(sql, *params)
       raise NotImplementedError, "must be implemented by child connection"
     end
 
-    def query_hash(sql, *params)
+    def query_decorator(sql, *params)
+      raise NotImplementedError, "must be implemented by child connection"
+    end
+
+    def query_each(sql, *params)
+      raise NotImplementedError, "must be implemented by child connection"
+    end
+
+    def query_each_hash(sql, *params)
+      raise NotImplementedError, "must be implemented by child connection"
+    end
+
+    def exec(sql, *params)
       raise NotImplementedError, "must be implemented by child connection"
     end
 

@@ -1,3 +1,7 @@
+2020-06-25 - 0.3
+
+- Added support for query_each and query_each_hash, which lazily queries rows and enables selecting large result sets by streaming
+
 2020-04-07 - 0.2.5
 
 - Added support for custom type maps with Postgres connections

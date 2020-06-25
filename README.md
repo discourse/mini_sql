@@ -160,6 +160,33 @@ mini_sql_cnn = MiniSql::Connection.get(pg_cnn, type_map: pg_cnn.type_map_for_res
 
 Note the type mapper for Rails may miss some of the mapping MiniSql ships with such as `IPAddr`, MiniSql is also careful to use the very efficient TimestampUtc decoders where available.
 
+## Streaming support
+
+In some exceptional cases you may want to stream results directly from the database. This enables selection of 100s of thousands of rows with limited memory impact.
+
+Two interfaces exists for this:
+
+`query_each` : which can be used to get materialized objects  
+`query_each_hash` : which can be used to iterate through Hash objects
+
+Usage:
+
+```ruby
+mini_sql_cnn.query_each("SELECT * FROM tons_of_cows limit :limit", limit: 1_000_000) do |row|
+  puts row.cow_name
+  puts row.cow_age
+end
+
+mini_sql_cnn.query_each_hash("SELECT * FROM one_million_cows") do |row|
+  puts row["cow_name"]
+  puts row["cow_age"]
+end
+```
+
+Note, in Postgres streaming is going to be slower than non-streaming options due to internal implementation in the pq gem, each row gets a full result object and additional bookkeeping is needed. Only use it if you need to optimize memory usage.
+
+Streaming support is only implemented in the postgres backend at the moment, PRs welcome to add to other backends.
+
 ## I want more features!
 
 MiniSql is designed to be very minimal. Even though the query builder and type materializer give you a lot of mileage, it is not intended to be a fully fledged ORM. If you are looking for an ORM I recommend investigating ActiveRecord or Sequel which provide significantly more features.

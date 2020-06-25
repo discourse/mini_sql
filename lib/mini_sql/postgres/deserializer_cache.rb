@@ -11,6 +11,20 @@ module MiniSql
         @max_size = max_size || DEFAULT_MAX_SIZE
       end
 
+      def materializer(result)
+        key = result.fields
+
+        materializer = @cache.delete(key)
+        if materializer
+          @cache[key] = materializer
+        else
+          materializer = @cache[key] = new_row_matrializer(result)
+          @cache.shift if @cache.length > @max_size
+        end
+
+        materializer
+      end
+
       def materialize(result, decorator_module = nil)
         return [] if result.ntuples == 0
 
@@ -41,6 +55,15 @@ module MiniSql
 
       def new_row_matrializer(result)
         fields = result.fields
+
+        i = 0
+        while i < fields.length
+          # special handling for unamed column
+          if fields[i] == "?column?"
+            fields[i] = "column#{i}"
+          end
+          i += 1
+        end
 
         Class.new do
           attr_accessor(*fields)

@@ -83,7 +83,7 @@ module MiniSql
         result = run(sql, params)
         result.type_map = type_map
         result.values
-       ensure
+      ensure
          result.clear if result
       end
 
@@ -93,6 +93,72 @@ module MiniSql
         @deserializer_cache.materialize(result)
       ensure
         result.clear if result
+      end
+
+      def query_each(sql, *params)
+        raise StandardError, "Please supply a block when calling query_each" if !block_given?
+        if params && params.length > 0
+          sql = param_encoder.encode(sql, *params)
+        end
+
+        raw_connection.send_query(sql)
+        raw_connection.set_single_row_mode
+
+        loop do
+          result = raw_connection.get_result
+          break if !result
+
+          result.check
+
+          if result.ntuples == 0
+            # skip, this happens at the end when we get totals
+          else
+            materializer ||= @deserializer_cache.materializer(result)
+            result.type_map = type_map
+            i = 0
+            # technically we should only get 1 row here
+            # but protect against future batching changes
+            while i < result.ntuples
+              yield materializer.materialize(result, i)
+              i += 1
+            end
+          end
+
+          result.clear
+        end
+      end
+
+      def query_each_hash(sql, *params)
+        raise StandardError, "Please supply a block when calling query_each_hash" if !block_given?
+        if params && params.length > 0
+          sql = param_encoder.encode(sql, *params)
+        end
+
+        raw_connection.send_query(sql)
+        raw_connection.set_single_row_mode
+
+        loop do
+          result = raw_connection.get_result
+          break if !result
+
+          result.check
+
+          if result.ntuples == 0
+            # skip, this happens at the end when we get totals
+          else
+            result.type_map = type_map
+            i = 0
+
+            # technically we should only get 1 row here
+            # but protect against future batching changes
+            while i < result.ntuples
+              yield result[i]
+              i += 1
+            end
+          end
+
+          result.clear
+        end
       end
 
       def query_decorator(decorator, sql, *params)
