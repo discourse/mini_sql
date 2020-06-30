@@ -66,4 +66,14 @@ class MiniSql::Builder
     RUBY
   end
 
+  def query_decorator(decorator, hash_args = nil)
+    hash_args = @args.merge(hash_args) if hash_args && @args
+    hash_args ||= @args
+    if hash_args
+      @connection.query_decorator(decorator, to_sql, hash_args)
+    else
+      @connection.query_decorator(decorator, to_sql)
+    end
+  end
+
 end

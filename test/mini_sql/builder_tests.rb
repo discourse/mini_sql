@@ -69,12 +69,6 @@ module MiniSql::BuilderTests
   end
 
   def test_accepts_params_at_end
-    builder = @connection.build("select :bob as a")
-    r = builder.query_hash(bob: 1)
-    assert_equal([{ "a" => 1 }], r)
-  end
-
-  def test_accepts_params_at_end
     builder = @connection.build("select :bob as a /*where*/")
     builder.where('1 = :one', one: 1)
     r = builder.query_hash(bob: 1)
@@ -92,5 +86,18 @@ module MiniSql::BuilderTests
     builder.limit(1)
     builder.offset(1)
     assert_equal([2], builder.query_single)
+  end
+
+  module ProductDecorator
+    def amount_price
+      price * quantity
+    end
+  end
+
+  def test_query_decorator
+    builder = @connection.build("select 20 price, 3 quantity")
+
+    r = builder.query_decorator(ProductDecorator).first
+    assert_equal(60, r.amount_price)
   end
 end
