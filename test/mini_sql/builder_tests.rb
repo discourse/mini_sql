@@ -95,9 +95,10 @@ module MiniSql::BuilderTests
   end
 
   def test_query_decorator
-    builder = @connection.build("select 20 price, 3 quantity")
+    builder = @connection.build("select :price AS price, :quantity AS quantity /*where*/")
+    builder.where('1 = :one', one: 1)
 
-    r = builder.query_decorator(ProductDecorator).first
+    r = builder.query_decorator(ProductDecorator, price: 20, quantity: 3).first
     assert_equal(60, r.amount_price)
   end
 end
