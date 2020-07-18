@@ -50,9 +50,7 @@ module MiniSql
       private
 
       def run(sql, as, params)
-        if params && params.length > 0
-          sql = param_encoder.encode(sql, *params)
-        end
+        sql = param_encoder.encode(sql, *params)
         raw_connection.query(
           sql,
           as: as,

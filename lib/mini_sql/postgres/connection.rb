@@ -97,9 +97,7 @@ module MiniSql
 
       def query_each(sql, *params)
         raise StandardError, "Please supply a block when calling query_each" if !block_given?
-        if params && params.length > 0
-          sql = param_encoder.encode(sql, *params)
-        end
+        sql = param_encoder.encode(sql, *params)
 
         raw_connection.send_query(sql)
         raw_connection.set_single_row_mode
@@ -130,9 +128,7 @@ module MiniSql
 
       def query_each_hash(sql, *params)
         raise StandardError, "Please supply a block when calling query_each_hash" if !block_given?
-        if params && params.length > 0
-          sql = param_encoder.encode(sql, *params)
-        end
+        sql = param_encoder.encode(sql, *params)
 
         raw_connection.send_query(sql)
         raw_connection.set_single_row_mode
@@ -195,9 +191,7 @@ module MiniSql
       private
 
       def run(sql, params)
-        if params && params.length > 0
-          sql = param_encoder.encode(sql, *params)
-        end
+        sql = param_encoder.encode(sql, *params)
         raw_connection.async_exec(sql)
       end
 
