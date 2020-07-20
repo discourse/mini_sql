@@ -95,4 +95,12 @@ class MiniSql::Mysql::TestBuilder < MiniTest::Test
 
     assert_equal([7, 8], @connection.query_single("select * from ta"))
   end
+
+  def test_query_decorator
+    builder = @connection.build("select :price AS price, :quantity AS quantity from for_testing /*where*/")
+    builder.where('1 = :one', one: 1)
+
+    r = builder.query_decorator(ProductDecorator, price: 20, quantity: 3).first
+    assert_equal(60, r.amount_price)
+  end
 end
