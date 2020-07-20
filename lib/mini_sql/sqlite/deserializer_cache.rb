@@ -13,7 +13,7 @@ module MiniSql
 
       def materialize(result, decorator_module = nil)
 
-        key = result.columns
+        key = result.columns.hash
 
         # trivial fast LRU implementation
         materializer = @cache.delete(key)
