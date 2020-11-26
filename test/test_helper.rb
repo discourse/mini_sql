@@ -23,7 +23,13 @@ else
   require "mysql2"
 
   def mysql_connection
-    mysql_conn = Mysql2::Client.new(database: 'test_mini_sql', username: 'root')
+    args = { database: 'test_mini_sql', username: 'root' }
+    %i[port host password].each do |name|
+      if val = ENV["MINI_SQL_MYSQL_#{name.upcase}"]
+        args[name] = val
+      end
+    end
+    mysql_conn = Mysql2::Client.new(**args)
     mysql_conn.query("create TEMPORARY table IF NOT EXISTS for_testing ( a int )")
     mysql_conn.query("insert into for_testing values (1)")
     MiniSql::Connection.get(mysql_conn)
