@@ -84,7 +84,7 @@ module MiniSql
         result.type_map = type_map
         result.values
       ensure
-         result.clear if result
+        result.clear if result
       end
 
       def query(sql, *params)

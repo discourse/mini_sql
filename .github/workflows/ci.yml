@@ -1,0 +1,66 @@
+name: Mini SQL Tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+env:
+  PGHOST: localhost
+  PGPORT: 5432
+  PGPASSWORD: postgres
+  PGUSER: postgres
+  MINI_SQL_MYSQL_HOST: 127.0.0.1
+  MINI_SQL_MYSQL_PORT: 3306
+  MINI_SQL_MYSQL_PASSWORD: mysql
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Ruby ${{ matrix.ruby }}
+    services:
+      postgres:
+        image: postgres:9.6
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: mysql
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    strategy:
+      matrix:
+        ruby: ["2.7", "2.6", "2.5"]
+        experimental: [false]
+        include:
+          - ruby: ruby-head
+            experimental: true
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+      - name: Bundler cache
+        uses: actions/cache@v2
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-${{ matrix.ruby }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.ruby }}-gems-
+      - name: Create Databases
+        run: |
+          createdb test_mini_sql
+          mysql --host=127.0.0.1 --port=3306 --user=root --password=mysql -e 'CREATE DATABASE test_mini_sql'
+      - name: Setup gems
+        run: |
+          bundle config path vendor/bundle
+          bundle install --jobs 4
+      - name: Tests
+        run: bundle exec rake test
+      - name: Rubocop
+        run: bundle exec rubocop
