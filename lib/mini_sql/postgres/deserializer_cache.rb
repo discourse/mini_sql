@@ -92,6 +92,7 @@ module MiniSql
       def materializer(result)
         key = result.fields
 
+        # trivial fast LRU implementation
         materializer = @cache.delete(key)
         if materializer
           @cache[key] = materializer
