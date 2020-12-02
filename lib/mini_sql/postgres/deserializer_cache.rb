@@ -36,7 +36,7 @@ module MiniSql
               r
             end
 
-            def self.materialize_hash(result_hash)
+            def self.materialize_from_hash(result_hash)
               r = self.new
               result_hash.each do |field, value|
                 r.send(:"#{field}=", value)
@@ -72,12 +72,15 @@ module MiniSql
         end
 
         def marshal_load(result:, decorator_module:)
-          materializer = SerializableMaterializer.build_materializer(fields: result[0].keys)
-          materializer.include(decorator_module) if decorator_module
-          result.each do |deserialized_result|
-            self << materializer.materialize_hash(deserialized_result)
-          end
+          self.materializer = SerializableMaterializer.build_materializer(fields: result[0].keys)
           self.decorator_module = decorator_module
+
+          materializer.include(decorator_module) if decorator_module
+
+          result.each do |deserialized_result|
+            self << materializer.materialize_from_hash(deserialized_result)
+          end
+
           self
         end
       end
