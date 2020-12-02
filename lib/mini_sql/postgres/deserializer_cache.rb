@@ -56,13 +56,12 @@ module MiniSql
 
         def materialize(result)
           i = 0
-          r = []
           # quicker loop
           while i < result.ntuples
-            r << materializer.materialize(result, i)
+            self << materializer.materialize(result, i)
             i += 1
           end
-          replace(r)
+          self
         end
 
         def marshal_dump
@@ -75,11 +74,11 @@ module MiniSql
         def marshal_load(result:, decorator_module:)
           materializer = SerializableMaterializer.build_materializer(fields: result[0].keys)
           materializer.include(decorator_module) if decorator_module
-          replace(
-            result.map do |deserialized_result|
-              materializer.materialize_hash(deserialized_result)
-            end
-          )
+          result.each do |deserialized_result|
+            self << materializer.materialize_hash(deserialized_result)
+          end
+          self.decorator_module = decorator_module
+          self
         end
       end
 
