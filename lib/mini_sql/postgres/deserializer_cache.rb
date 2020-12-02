@@ -36,7 +36,7 @@ module MiniSql
               r
             end
 
-            def self.materialize_hash(result_hash)
+            def self.materialize_from_hash(result_hash)
               r = self.new
               result_hash.each do |field, value|
                 r.send(:"#{field}=", value)
@@ -45,7 +45,7 @@ module MiniSql
             end
 
             instance_eval <<~RUBY
-              def materialize(pg_result, index)
+              def materialize_from_db(pg_result, index)
                 r = self.new
                 #{col = -1; fields.map { |f| "r.#{f} = pg_result.getvalue(index, #{col += 1})" }.join("; ")}
                 r
@@ -58,7 +58,7 @@ module MiniSql
           i = 0
           # quicker loop
           while i < result.ntuples
-            self << materializer.materialize(result, i)
+            self << materializer.materialize_from_db(result, i)
             i += 1
           end
           self
@@ -75,7 +75,7 @@ module MiniSql
           materializer = SerializableMaterializer.build_materializer(fields: result[0].keys)
           materializer.include(decorator_module) if decorator_module
           result.each do |deserialized_result|
-            self << materializer.materialize_hash(deserialized_result)
+            self << materializer.materialize_from_hash(deserialized_result)
           end
           self.decorator_module = decorator_module
           self
