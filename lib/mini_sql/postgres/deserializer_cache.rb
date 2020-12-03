@@ -39,7 +39,7 @@ module MiniSql
             def self.materialize_from_hash(result_hash)
               r = self.new
               result_hash.each do |field, value|
-                r.send(:"#{field}=", value)
+                r.public_send(:"#{field}=", value)
               end
               r
             end
