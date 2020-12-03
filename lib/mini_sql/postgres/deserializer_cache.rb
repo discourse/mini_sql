@@ -31,7 +31,7 @@ module MiniSql
             def to_h
               r = {}
               self.class.fields.each do |f|
-                r[f.to_s.sub('@', '').to_sym] = instance_variable_get(f)
+                r[f] = instance_variable_get(:"@#{f}")
               end
               r
             end
