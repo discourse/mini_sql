@@ -42,7 +42,7 @@ module MiniSql
 
             def self.materialize_serialized(row_result)
               r = self.new
-              fields.each_with_index do |f, col| 
+              fields.each_with_index do |f, col|
                 r.public_send("#{f}=", row_result[col])
               end
               r
@@ -51,7 +51,7 @@ module MiniSql
             def self.materialize(pg_result, index)
               r = self.new
               col = -1
-              fields.each do |f| 
+              fields.each do |f|
                 r.public_send("#{f}=", pg_result.getvalue(index, col += 1))
               end
               r
