@@ -30,25 +30,36 @@ module MiniSql
 
             def to_h
               r = {}
-              instance_variables.each do |f|
+              self.class.fields.each do |f|
                 r[f.to_s.sub('@', '').to_sym] = instance_variable_get(f)
               end
               r
             end
 
-            def self.materialize_from_hash(result_hash)
+            def values
+              self.class.fields.map { |f| instance_variable_get(:"@#{f}") }
+            end
+
+            def self.materialize_serialized(row_result)
               r = self.new
-              result_hash.each do |field, value|
-                r.public_send(:"#{field}=", value)
+              fields.each_with_index do |f, col| 
+                r.public_send("#{f}=", row_result[col])
+              end
+              r
+            end
+
+            def self.materialize(pg_result, index)
+              r = self.new
+              col = -1
+              fields.each do |f| 
+                r.public_send("#{f}=", pg_result.getvalue(index, col += 1))
               end
               r
             end
 
             instance_eval <<~RUBY
-              def materialize(pg_result, index)
-                r = self.new
-                #{col = -1; fields.map { |f| "r.#{f} = pg_result.getvalue(index, #{col += 1})" }.join("; ")}
-                r
+              def fields
+                #{fields.map(&:to_sym)}
               end
             RUBY
           end
@@ -66,19 +77,20 @@ module MiniSql
 
         def marshal_dump
           {
-            result: map(&:to_h),
+            result: map(&:values),
+            fields: materializer.fields,
             decorator_module: decorator_module,
           }
         end
 
-        def marshal_load(result:, decorator_module:)
-          self.materializer = SerializableMaterializer.build_materializer(fields: result[0].keys)
+        def marshal_load(result:, fields:, decorator_module:)
+          self.materializer = SerializableMaterializer.build_materializer(fields: fields)
           self.decorator_module = decorator_module
 
           materializer.include(decorator_module) if decorator_module
 
-          result.each do |deserialized_result|
-            self << materializer.materialize_from_hash(deserialized_result)
+          result.each do |row_result|
+            self << materializer.materialize_serialized(row_result)
           end
 
           self
