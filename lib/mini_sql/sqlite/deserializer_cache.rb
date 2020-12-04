@@ -20,7 +20,7 @@ module MiniSql
         if materializer
           @cache[key] = materializer
         else
-          materializer = @cache[key] = new_row_matrializer(fields: result.columns)
+          materializer = @cache[key] = self.class.new_row_matrializer(fields: result.columns)
           @cache.shift if @cache.length > @max_size
         end
 
@@ -39,7 +39,7 @@ module MiniSql
 
       private
 
-      def new_row_matrializer(fields:)
+      def self.new_row_matrializer(fields:)
         Class.new do
           attr_accessor(*fields)
 
