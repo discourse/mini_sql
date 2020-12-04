@@ -20,13 +20,13 @@ module MiniSql
         if materializer
           @cache[key] = materializer
         else
-          materializer = @cache[key] = new_row_matrializer(result)
+          materializer = @cache[key] = new_row_matrializer(fields: result.columns)
           @cache.shift if @cache.length > @max_size
         end
 
         materializer.include(decorator_module) if decorator_module
 
-        r = []
+        r = MiniSql::Result.new(decorator_module: decorator_module, deserializer_class: self.class)
         # quicker loop
         while !result.eof?
           data = result.next
@@ -39,9 +39,7 @@ module MiniSql
 
       private
 
-      def new_row_matrializer(result)
-        fields = result.columns
-
+      def new_row_matrializer(fields:)
         Class.new do
           attr_accessor(*fields)
 

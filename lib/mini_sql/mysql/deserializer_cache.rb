@@ -19,22 +19,22 @@ module MiniSql
         if materializer
           @cache[key] = materializer
         else
-          materializer = @cache[key] = new_row_matrializer(result)
+          materializer = @cache[key] = new_row_matrializer(fields: result.fields)
           @cache.shift if @cache.length > @max_size
         end
 
         materializer.include(decorator_module) if decorator_module
 
-        result.map do |data|
-          materializer.materialize(data)
+        r = MiniSql::Result.new(decorator_module: decorator_module, deserializer_class: self.class)
+        result.each do |data|
+          r << materializer.materialize(data)
         end
+        r
       end
 
       private
 
-      def new_row_matrializer(result)
-        fields = result.fields
-
+      def self.new_row_matrializer(fields:)
         Class.new do
           attr_accessor(*fields)
 
