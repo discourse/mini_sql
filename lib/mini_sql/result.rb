@@ -28,7 +28,7 @@ module MiniSql
       values_rows.each do |row_result|
         r = materializer.new
         fields.each_with_index do |f, col|
-          r.public_send("#{f}=", row_result[col])
+          r.instance_variable_set(:"@#{f}", row_result[col])
         end
         self << r
       end
