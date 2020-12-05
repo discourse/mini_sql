@@ -9,14 +9,16 @@ module MiniSql
     end
 
     def marshal_dump
-      {
-        values_rows: map { |row| row.to_h.values },
-        fields: first.to_h.keys,
-        decorator_module: decorator_module,
-      }
+      [
+        first.to_h.keys,
+        map { |row| row.to_h.values },
+        decorator_module,
+      ]
     end
 
-    def marshal_load(values_rows:, fields:, decorator_module:)
+    def marshal_load(args)
+      fields, values_rows, decorator_module = args
+
       @decorator_module = decorator_module
 
       materializer = Matrializer.build(fields)
