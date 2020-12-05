@@ -123,4 +123,15 @@ module MiniSql::ConnectionTests
     assert_equal(60, r.amount_price)
   end
 
+  def test_marshaling_query_decorator
+    dump1 = Marshal.dump(@connection.query_decorator(ProductDecorator, 'select 20 price, 3 quantity'))
+    res1  = Marshal.load(dump1)
+
+    # dump from restored first dumped
+    dump2 = Marshal.dump(res1)
+    res2 = Marshal.load(dump2).first
+
+    assert_equal(60, res2.amount_price)
+  end
+
 end

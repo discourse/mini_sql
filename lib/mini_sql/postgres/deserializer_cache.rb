@@ -19,7 +19,7 @@ module MiniSql
         if materializer
           @cache[key] = materializer
         else
-          materializer = @cache[key] = self.class.new_row_matrializer(fields: result.fields)
+          materializer = @cache[key] = new_row_matrializer(fields: result.fields)
           @cache.shift if @cache.length > @max_size
         end
 
@@ -32,7 +32,7 @@ module MiniSql
         cached_materializer = materializer(result)
         cached_materializer.include(decorator_module) if decorator_module
 
-        r = MiniSql::Result.new(decorator_module: decorator_module, deserializer_class: self.class)
+        r = MiniSql::Result.new(decorator_module: decorator_module)
         i = 0
         # quicker loop
         while i < result.ntuples
@@ -42,7 +42,9 @@ module MiniSql
         r
       end
 
-      def self.new_row_matrializer(fields:)
+      private
+
+      def new_row_matrializer(fields:)
         i = 0
         while i < fields.length
           # special handling for unamed column
@@ -52,28 +54,13 @@ module MiniSql
           i += 1
         end
 
-        Class.new do
-          attr_accessor(*fields)
-
-          # AM serializer support
-          alias :read_attribute_for_serialization :send
-
-          def to_h
-            r = {}
-            instance_variables.each do |f|
-              r[f.to_s.sub('@', '').to_sym] = instance_variable_get(f)
-            end
+        MiniSql::Matrializer.build(fields, <<~RUBY)
+          def materialize(pg_result, index)
+            r = self.new
+            #{col = -1; fields.map { |f| "r.#{f} = pg_result.getvalue(index, #{col += 1})" }.join("; ")}
             r
           end
-
-          instance_eval <<~RUBY
-            def materialize(pg_result, index)
-              r = self.new
-              #{col = -1; fields.map { |f| "r.#{f} = pg_result.getvalue(index, #{col += 1})" }.join("; ")}
-              r
-            end
-          RUBY
-        end
+        RUBY
       end
     end
   end
