@@ -4,7 +4,7 @@ module MiniSql
   class Result < Array
     attr_reader :decorator_module
 
-    def initialize(decorator_module: nil)
+    def initialize(decorator_module = nil)
       @decorator_module = decorator_module
     end
 
@@ -21,7 +21,7 @@ module MiniSql
 
       @decorator_module = decorator_module
 
-      materializer = Matrializer.build(fields)
+      materializer = MiniSql::Matrializer.build(fields)
       materializer.include(decorator_module) if decorator_module
 
       values_rows.each do |row_result|

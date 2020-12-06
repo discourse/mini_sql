@@ -25,7 +25,7 @@ module MiniSql
 
         materializer.include(decorator_module) if decorator_module
 
-        r = MiniSql::Result.new(decorator_module: decorator_module)
+        r = MiniSql::Result.new(decorator_module)
         result.each do |data|
           r << materializer.materialize(data)
         end

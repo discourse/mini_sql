@@ -32,7 +32,7 @@ module MiniSql
         cached_materializer = materializer(result)
         cached_materializer.include(decorator_module) if decorator_module
 
-        r = MiniSql::Result.new(decorator_module: decorator_module)
+        r = MiniSql::Result.new(decorator_module)
         i = 0
         # quicker loop
         while i < result.ntuples
