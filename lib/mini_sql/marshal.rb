@@ -1,27 +1,27 @@
 # frozen_string_literal: true
 
 module MiniSql
-  class Result < Array
-    attr_reader :decorator_module
-
-    def initialize(decorator_module = nil)
-      @decorator_module = decorator_module
+  class Marshal < Array
+    def initialize(entries)
+      replace(entries)
     end
 
     def marshal_dump
       [
         first.to_h.keys,
         map { |row| row.to_h.values },
-        decorator_module,
+        defined_decorator_module,
       ]
+    end
+
+    private def defined_decorator_module
+      (first.class.included_modules - Class.new.included_modules).first
     end
 
     def marshal_load(args)
       fields, values_rows, decorator_module = args
 
-      @decorator_module = decorator_module
-
-      materializer = MiniSql::Matrializer.build(fields)
+      materializer = MiniSql::Materializer.build(fields)
       materializer.include(decorator_module) if decorator_module
 
       values_rows.each do |row_result|

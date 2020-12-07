@@ -12,7 +12,6 @@ module MiniSql
       end
 
       def materialize(result, decorator_module = nil)
-
         key = result.columns
 
         # trivial fast LRU implementation
@@ -20,13 +19,13 @@ module MiniSql
         if materializer
           @cache[key] = materializer
         else
-          materializer = @cache[key] = new_row_matrializer(result.columns)
+          materializer = @cache[key] = new_row_materializer(result.columns)
           @cache.shift if @cache.length > @max_size
         end
 
         materializer.include(decorator_module) if decorator_module
 
-        r = MiniSql::Result.new(decorator_module)
+        r = []
         # quicker loop
         while !result.eof?
           data = result.next
@@ -39,8 +38,8 @@ module MiniSql
 
       private
 
-      def new_row_matrializer(fields)
-        MiniSql::Matrializer.build(fields, <<~RUBY)
+      def new_row_materializer(fields)
+        MiniSql::Materializer.build(fields, <<~RUBY)
           def materialize(data)
             r = self.new
             #{col = -1; fields.map { |f| "r.#{f} = data[#{col += 1}]" }.join("; ")}

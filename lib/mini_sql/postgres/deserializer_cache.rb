@@ -19,7 +19,7 @@ module MiniSql
         if materializer
           @cache[key] = materializer
         else
-          materializer = @cache[key] = new_row_matrializer(result.fields)
+          materializer = @cache[key] = new_row_materializer(result.fields)
           @cache.shift if @cache.length > @max_size
         end
 
@@ -32,7 +32,7 @@ module MiniSql
         cached_materializer = materializer(result)
         cached_materializer.include(decorator_module) if decorator_module
 
-        r = MiniSql::Result.new(decorator_module)
+        r = []
         i = 0
         # quicker loop
         while i < result.ntuples
@@ -44,7 +44,7 @@ module MiniSql
 
       private
 
-      def new_row_matrializer(fields)
+      def new_row_materializer(fields)
         i = 0
         while i < fields.length
           # special handling for unamed column
@@ -54,7 +54,7 @@ module MiniSql
           i += 1
         end
 
-        MiniSql::Matrializer.build(fields, <<~RUBY)
+        MiniSql::Materializer.build(fields, <<~RUBY)
           def materialize(pg_result, index)
             r = self.new
             #{col = -1; fields.map { |f| "r.#{f} = pg_result.getvalue(index, #{col += 1})" }.join("; ")}
