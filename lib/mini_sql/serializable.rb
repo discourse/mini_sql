@@ -2,7 +2,6 @@
 
 module MiniSql
   class Serializable < Array
-    
     def initialize(entries)
       replace(entries)
     end
@@ -35,6 +34,5 @@ module MiniSql
 
       self
     end
-
   end
 end
