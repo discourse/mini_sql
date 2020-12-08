@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module MiniSql
-  class Marshal < Array
+  class Serializable < Array
+    
     def initialize(entries)
       replace(entries)
     end

@@ -8,7 +8,7 @@ require_relative "mini_sql/connection"
 require_relative "mini_sql/deserializer_cache"
 require_relative "mini_sql/builder"
 require_relative "mini_sql/inline_param_encoder"
-require_relative "mini_sql/marshal"
+require_relative "mini_sql/serializable"
 require_relative "mini_sql/materializer"
 
 module MiniSql

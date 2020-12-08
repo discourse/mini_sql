@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module MiniSql
-  class Materializer < Array
+  class Materializer
 
     def self.build(fields, instance_eval_code = '')
       Class.new do

@@ -124,7 +124,7 @@ module MiniSql::ConnectionTests
   end
 
   def test_marshaling
-    r = MiniSql::Marshal.new(@connection.query('select 20 price, 3 quantity'))
+    r = MiniSql::Serializable.new(@connection.query('select 20 price, 3 quantity'))
 
     dump1 = Marshal.dump(r)
     res1  = Marshal.load(dump1)
@@ -137,7 +137,7 @@ module MiniSql::ConnectionTests
   end
 
   def test_marshaling_query_decorator
-    r = MiniSql::Marshal.new(@connection.query_decorator(ProductDecorator, 'select 20 price, 3 quantity'))
+    r = MiniSql::Serializable.new(@connection.query_decorator(ProductDecorator, 'select 20 price, 3 quantity'))
 
     dump1 = Marshal.dump(r)
     res1  = Marshal.load(dump1)
