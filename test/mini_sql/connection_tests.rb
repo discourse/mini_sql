@@ -121,6 +121,16 @@ module MiniSql::ConnectionTests
   def test_query_decorator
     r = @connection.query_decorator(ProductDecorator, 'select 20 price, 3 quantity').first
     assert_equal(60, r.amount_price)
+    assert_equal(ProductDecorator, r.class.decorator)
+  end
+
+  def test_query_decorator_leaks
+    r = @connection.query_decorator(ProductDecorator, 'select 20 price, 3 quantity').first
+    assert_equal(ProductDecorator, r.class.decorator)
+
+    r = @connection.query('select 20 price, 3 quantity').first
+    refute(r.respond_to? :amount_price)
+    assert_equal(nil, r.class.decorator)
   end
 
 end

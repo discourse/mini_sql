@@ -23,7 +23,9 @@ module MiniSql
           @cache.shift if @cache.length > @max_size
         end
 
-        materializer.include(decorator_module) if decorator_module
+        if decorator_module
+          materializer = materializer.decorated(decorator_module)
+        end
 
         result.map do |data|
           materializer.materialize(data)

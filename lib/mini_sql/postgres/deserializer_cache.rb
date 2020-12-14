@@ -39,7 +39,9 @@ module MiniSql
           @cache.shift if @cache.length > @max_size
         end
 
-        materializer.include(decorator_module) if decorator_module
+        if decorator_module
+          materializer = materializer.decorated(decorator_module)
+        end
 
         i = 0
         r = []
@@ -66,6 +68,7 @@ module MiniSql
         end
 
         Class.new do
+          extend MiniSql::Decoratable
           attr_accessor(*fields)
 
           # AM serializer support

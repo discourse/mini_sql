@@ -40,6 +40,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "activesupport", "~> 5.2"
   spec.add_development_dependency 'rubocop', '~> 1.4.0'
   spec.add_development_dependency 'rubocop-discourse', '~> 2.4.1'
+  spec.add_development_dependency 'm', '~> 1.5.1'
 
   if RUBY_ENGINE == 'jruby'
     spec.add_development_dependency "activerecord-jdbcpostgresql-adapter", "~> 52.2"

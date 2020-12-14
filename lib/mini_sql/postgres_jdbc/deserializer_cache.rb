@@ -28,6 +28,10 @@ module MiniSql
 
         materializer.include(decorator_module) if decorator_module
 
+        if decorator_module
+          materializer = materializer.decorated(decorator_module)
+        end
+
         i = 0
         r = []
         # quicker loop
