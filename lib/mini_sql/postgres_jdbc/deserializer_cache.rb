@@ -48,6 +48,7 @@ module MiniSql
         fields = result.fields
 
         Class.new do
+          extend MiniSql::Decoratable
           attr_accessor(*fields)
 
           # AM serializer support
