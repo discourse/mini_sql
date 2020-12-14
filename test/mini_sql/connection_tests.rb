@@ -133,4 +133,25 @@ module MiniSql::ConnectionTests
     assert_equal(nil, r.class.decorator)
   end
 
+  def test_serializers
+    r = @connection.query("select 1 one, 'two' two")
+    json = MiniSql::Serializer.to_json(r)
+    r = MiniSql::Serializer.from_json(json)
+
+    assert_equal(r[0].one, 1)
+    assert_equal(r[0].two, "two")
+    assert_equal(r.length, 1)
+  end
+
+  def test_serializer_with_decorator
+    r = @connection.query_decorator(ProductDecorator, 'select 20 price, 3 quantity')
+    json = MiniSql::Serializer.to_json(r)
+    r = MiniSql::Serializer.from_json(json)
+
+    assert_equal(r[0].price, 20)
+    assert_equal(r[0].quantity, 3)
+    assert_equal(r[0].amount_price, 60)
+    assert_equal(r.length, 1)
+  end
+
 end

@@ -9,6 +9,7 @@ require_relative "mini_sql/deserializer_cache"
 require_relative "mini_sql/builder"
 require_relative "mini_sql/inline_param_encoder"
 require_relative "mini_sql/decoratable"
+require_relative "mini_sql/serializer"
 
 module MiniSql
   if RUBY_ENGINE == 'jruby'
