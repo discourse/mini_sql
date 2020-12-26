@@ -49,18 +49,9 @@ module MiniSql
 
         Class.new do
           extend MiniSql::Decoratable
+          include MiniSql::Result
+          
           attr_accessor(*fields)
-
-          # AM serializer support
-          alias :read_attribute_for_serialization :send
-
-          def to_h
-            r = {}
-            instance_variables.each do |f|
-              r[f.to_s.sub('@', '').to_sym] = instance_variable_get(f)
-            end
-            r
-          end
 
           instance_eval <<~RUBY
             def materialize(pg_result, index)

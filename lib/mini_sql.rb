@@ -10,6 +10,7 @@ require_relative "mini_sql/builder"
 require_relative "mini_sql/inline_param_encoder"
 require_relative "mini_sql/decoratable"
 require_relative "mini_sql/serializer"
+require_relative "mini_sql/result"
 
 module MiniSql
   if RUBY_ENGINE == 'jruby'

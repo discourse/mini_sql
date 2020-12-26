@@ -11,7 +11,8 @@ module MiniSql
         else
           {
             "decorator" => result[0].class.decorator.to_s,
-            "data" => result.map(&:to_h)
+            "fields" => result[0].to_h.keys,
+            "data" => result.map(&:values),
           }
         end
 
@@ -23,60 +24,47 @@ module MiniSql
       if !wrapper["data"]
         []
       else
-        materializer = cached_materializer(wrapper)
+        materializer = cached_materializer(wrapper['fields'], wrapper['decorator'])
         wrapper["data"].map do |row|
           materializer.materialize(row)
         end
       end
     end
 
-    def self.cached_materializer(wrapper)
+    def self.cached_materializer(fields, decorator_module = nil)
       @cache ||= {}
-      key = wrapper["data"][0].keys
+      key = fields
       m = @cache.delete(key)
       if m
         @cache[key] = m
       else
-        m = @cache[key] = materializer(wrapper)
+        m = @cache[key] = materializer(fields)
         @cache.shift if @cache.length > MAX_CACHE_SIZE
       end
 
-      if wrapper["decorator"] && wrapper["decorator"].length > 0
-        decorator = Kernel.const_get(wrapper["decorator"])
+      if decorator_module && decorator_module.length > 0
+        decorator = Kernel.const_get(decorator_module)
         m = m.decorated(decorator)
       end
 
       m
     end
 
-    def self.materializer(wrapper)
-      fields = wrapper["data"][0].keys
-
-      result = Class.new do
+    def self.materializer(fields)
+      Class.new do
         extend MiniSql::Decoratable
+        include MiniSql::Result
+
         attr_accessor(*fields)
 
-        # AM serializer support
-        alias :read_attribute_for_serialization :send
-
-        def to_h
-          r = {}
-          instance_variables.each do |f|
-            r[f.to_s.sub('@', '').to_sym] = instance_variable_get(f)
-          end
-          r
-        end
-
         instance_eval <<~RUBY
-          def materialize(hash)
+          def materialize(values)
             r = self.new
-            #{fields.map { |f| "r.#{f} = hash['#{f}']" }.join("; ")}
+            #{col = -1; fields.map { |f| "r.#{f} = values[#{col += 1}]" }.join("; ")}
             r
           end
         RUBY
       end
-
-      result
     end
   end
 end
