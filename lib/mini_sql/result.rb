@@ -8,7 +8,7 @@ module MiniSql
     def to_h
       r = {}
       instance_variables.each do |f|
-        r[f.to_s.delete('@').to_sym] = instance_variable_get(f)
+        r[f.to_s.delete_prefix('@').to_sym] = instance_variable_get(f)
       end
       r
     end
