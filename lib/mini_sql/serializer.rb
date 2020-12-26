@@ -31,6 +31,10 @@ module MiniSql
       end
     end
 
+    def self.marshallable(result)
+      MarshallableWrapper.new(result)
+    end
+
     def self.cached_materializer(fields, decorator_module = nil)
       @cache ||= {}
       key = fields
@@ -66,5 +70,26 @@ module MiniSql
         RUBY
       end
     end
+
+    class MarshallableWrapper < Array
+      def initialize(result)
+        replace(result)
+      end
+
+      def marshal_dump
+        {
+          "decorator" => first.class.decorator.to_s,
+          "fields" => first.to_h.keys,
+          "data" => map(&:values),
+        }
+      end
+
+      def marshal_load(wrapper)
+        materializer = MiniSql::Serializer.cached_materializer(wrapper['fields'], wrapper['decorator'])
+        replace wrapper['data'].map { |row| materializer.materialize(row) }
+        self
+      end
+    end
+
   end
 end
