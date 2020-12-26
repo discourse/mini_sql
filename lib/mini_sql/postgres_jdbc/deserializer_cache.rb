@@ -50,7 +50,7 @@ module MiniSql
         Class.new do
           extend MiniSql::Decoratable
           include MiniSql::Result
-          
+
           attr_accessor(*fields)
 
           instance_eval <<~RUBY
