@@ -1,93 +1,109 @@
 # frozen_string_literal: true
 
 module MiniSql
-  module Serializer
+  class Serializer < Array
     MAX_CACHE_SIZE = 500
 
-    def self.to_json(result)
-      wrapper =
-        if result.length == 0
+    def initialize(result)
+      replace(result)
+    end
+
+    private def _dump(level)
+      self.class.serialize do
+        if size == 0
           {}
         else
           {
-            "decorator" => result[0].class.decorator.to_s,
-            "fields" => result[0].to_h.keys,
-            "data" => result.map(&:values),
+            "decorator" => first.class.decorator.to_s,
+            "fields" => first.to_h.keys,
+            "data" => map(&:values),
           }
         end
-
-      JSON.generate(wrapper)
+      end
     end
 
-    def self.from_json(json)
-      wrapper = JSON.parse(json)
-      if !wrapper["data"]
-        []
-      else
-        materializer = cached_materializer(wrapper['fields'], wrapper['decorator'])
-        wrapper["data"].map do |row|
-          materializer.materialize(row)
+    class << self
+      def to_json(result)
+        wrapper =
+          if result.length == 0
+            {}
+          else
+            {
+              "decorator" => result[0].class.decorator.to_s,
+              "fields" => result[0].to_h.keys,
+              "data" => result.map(&:values),
+            }
+          end
+
+        JSON.generate(wrapper)
+      end
+
+      def from_json(json)
+        wrapper = JSON.parse(json)
+        if !wrapper["data"]
+          []
+        else
+          materializer = cached_materializer(wrapper['fields'], wrapper['decorator'])
+          wrapper["data"].map do |row|
+            materializer.materialize(row)
+          end
         end
       end
-    end
 
-    def self.marshallable(result)
-      MarshallableWrapper.new(result)
-    end
-
-    def self.cached_materializer(fields, decorator_module = nil)
-      @cache ||= {}
-      key = fields
-      m = @cache.delete(key)
-      if m
-        @cache[key] = m
-      else
-        m = @cache[key] = materializer(fields)
-        @cache.shift if @cache.length > MAX_CACHE_SIZE
+      def marshal_dump(result)
+        new(result)
       end
 
-      if decorator_module && decorator_module.length > 0
-        decorator = Kernel.const_get(decorator_module)
-        m = m.decorated(decorator)
+      private def serialize
+        JSON.generate(yield)
       end
 
-      m
-    end
-
-    def self.materializer(fields)
-      Class.new do
-        extend MiniSql::Decoratable
-        include MiniSql::Result
-
-        attr_accessor(*fields)
-
-        instance_eval <<~RUBY
-          def materialize(values)
-            r = self.new
-            #{col = -1; fields.map { |f| "r.#{f} = values[#{col += 1}]" }.join("; ")}
-            r
-          end
-        RUBY
-      end
-    end
-
-    class MarshallableWrapper < Array
-      def initialize(result)
-        replace(result)
+      private def deserialize
+        JSON.parse(yield)
       end
 
-      def marshal_dump
-        {
-          "decorator" => first.class.decorator.to_s,
-          "fields" => first.to_h.keys,
-          "data" => map(&:values),
-        }
+      private def _load(dump)
+        wrapper = deserialize { dump }
+        materializer = cached_materializer(wrapper['fields'], wrapper['decorator'])
+        result = self.new(wrapper['data'])
+        result.map! { |row| materializer.materialize(row) }
+        result
       end
 
-      def marshal_load(wrapper)
-        materializer = MiniSql::Serializer.cached_materializer(wrapper['fields'], wrapper['decorator'])
-        replace wrapper['data'].map { |row| materializer.materialize(row) }
-        self
+      private def cached_materializer(fields, decorator_module = nil)
+        @cache ||= {}
+        key = fields
+        m = @cache.delete(key)
+        if m
+          @cache[key] = m
+        else
+          m = @cache[key] = materializer(fields)
+          @cache.shift if @cache.length > MAX_CACHE_SIZE
+        end
+
+        if decorator_module && decorator_module.length > 0
+          decorator = Kernel.const_get(decorator_module)
+          m = m.decorated(decorator)
+        end
+
+        m
+      end
+
+      private def materializer(fields)
+        Class.new do
+          extend MiniSql::Decoratable
+          include MiniSql::Result
+
+          attr_accessor(*fields)
+
+          instance_eval <<~RUBY
+            def materialize(values)
+              r = self.new
+              #{col = -1; fields.map { |f| "r.#{f} = values[#{col += 1}]" }.join("; ")}
+              r
+            end
+          RUBY
+        end
       end
     end
 
