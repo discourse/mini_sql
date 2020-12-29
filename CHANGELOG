@@ -1,3 +1,9 @@
+2020-12-30 - 1.0
+
+- Added serialization support using MiniSql::Serializer.to_json / .from_json
+- Fixed minor issue with cache poisoning when using query_decorator
+- Version 1.0 to reflect the stability of the interfaces and project, used in productions for almost 2 years now
+
 2020-06-25 - 0.3
 
 - Added support for query_each and query_each_hash, which lazily queries rows and enables selecting large result sets by streaming
