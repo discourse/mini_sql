@@ -89,7 +89,9 @@ module MiniSql
       private
 
       def run(sql, params)
-        sql = param_encoder.encode(sql, *params) if params && params.length > 0
+        if params && params.length > 0
+          sql = param_encoder.encode(sql, *params)
+        end
         conn = raw_connection
         conn.typemap = self.class.typemap
         conn.execute(sql)

@@ -9,8 +9,6 @@ module MiniSql
     end
 
     def encode(sql, *params)
-      return sql unless params && params.length > 0
-
       if Hash === (hash = params[0])
         raise ArgumentError, "Only one hash param is allowed, multiple were sent" if params.length > 1
         encode_hash(sql, hash)
