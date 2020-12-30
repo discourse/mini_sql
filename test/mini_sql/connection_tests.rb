@@ -1,6 +1,24 @@
 # frozen_string_literal: true
 
 module MiniSql::ConnectionTests
+  class BadEncoder
+    # doest not implement encode
+  end
+
+  class OddEncoder
+    def encode(sql, *params)
+      sql + params.join(",")
+    end
+  end
+
+  def test_custom_param_encoder_not_called
+    new_connection(param_encoder: BadEncoder.new).exec("select 1")
+  end
+
+  def test_custom_param_encoder_called
+    array = new_connection(param_encoder: OddEncoder.new).query_single("select ", 1, 2)
+    assert_equal(array, [1, 2])
+  end
 
   def test_can_exec_sql
     @connection.exec("create temp table testing ( a int )")
@@ -130,7 +148,7 @@ module MiniSql::ConnectionTests
 
     r = @connection.query('select 20 price, 3 quantity').first
     refute(r.respond_to? :amount_price)
-    assert_equal(nil, r.class.decorator)
+    assert_nil(r.class.decorator)
   end
 
   def test_serializers

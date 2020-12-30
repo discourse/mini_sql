@@ -8,6 +8,10 @@ class MiniSql::Mysql::TestConnection < MiniTest::Test
     @connection = mysql_connection
   end
 
+  def new_connection(opts = {})
+    mysql_connection(opts)
+  end
+
   include MiniSql::ConnectionTests
 
   def test_can_exec_sql

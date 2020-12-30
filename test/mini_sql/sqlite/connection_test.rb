@@ -8,5 +8,9 @@ class MiniSql::Sqlite::TestConnection < MiniTest::Test
     @connection = sqlite3_connection
   end
 
+  def new_connection(opts = {})
+    mysql_connection(opts)
+  end
+
   include MiniSql::ConnectionTests
 end

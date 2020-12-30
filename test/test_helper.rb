@@ -22,8 +22,8 @@ else
   require "sqlite3"
   require "mysql2"
 
-  def mysql_connection
-    args = { database: 'test_mini_sql', username: 'root' }
+  def mysql_connection(options = {})
+    args = { database: 'test_mini_sql', username: 'root', password: '' }
     %i[port host password].each do |name|
       if val = ENV["MINI_SQL_MYSQL_#{name.upcase}"]
         args[name] = val
@@ -32,17 +32,17 @@ else
     mysql_conn = Mysql2::Client.new(**args)
     mysql_conn.query("create TEMPORARY table IF NOT EXISTS for_testing ( a int )")
     mysql_conn.query("insert into for_testing values (1)")
-    MiniSql::Connection.get(mysql_conn)
+    MiniSql::Connection.get(mysql_conn, options)
   end
 
-  def pg_connection
+  def pg_connection(options = {})
     pg_conn = PG.connect(dbname: 'test_mini_sql')
-    MiniSql::Connection.get(pg_conn)
+    MiniSql::Connection.get(pg_conn, options)
   end
 
-  def sqlite3_connection
+  def sqlite3_connection(options = {})
     sqlite_conn = SQLite3::Database.new(':memory:')
-    MiniSql::Connection.get(sqlite_conn)
+    MiniSql::Connection.get(sqlite_conn, options)
   end
 end
 

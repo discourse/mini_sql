@@ -7,12 +7,15 @@ class MiniSql::Postgres::TestConnection < MiniTest::Test
     @connection = pg_connection
   end
 
+  def new_connection(opts = {})
+    pg_connection(opts)
+  end
+
   include MiniSql::ConnectionTests
 
   def test_custom_type_map
-    pg_conn = PG.connect(dbname: 'test_mini_sql')
     map = PG::TypeMapByOid.new
-    cnn = MiniSql::Connection.get(pg_conn, type_map: map)
+    cnn = pg_connection(type_map: map)
     assert_equal(map, cnn.type_map)
     # OID type map is limited and just does text
     assert_equal("1", cnn.query("select 1 a").first.a)
