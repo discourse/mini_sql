@@ -145,7 +145,7 @@ module MiniSql::ConnectionTests
 
   def test_serializer_marshal
     r = @connection.query("select 1 one, 'two' two")
-    dump = Marshal.dump(MiniSql::Serializer.marshallable(r))
+    dump = Marshal.dump(MiniSql::Serializer.marshal_dump(r))
     r = Marshal.load(dump)
 
     assert_equal(r[0].one, 1)
@@ -166,7 +166,7 @@ module MiniSql::ConnectionTests
 
   def test_serializer_marshal_with_decorator
     r = @connection.query_decorator(ProductDecorator, 'select 20 price, 3 quantity')
-    dump = Marshal.dump(MiniSql::Serializer.marshallable(r))
+    dump = Marshal.dump(MiniSql::Serializer.marshal_dump(r))
     r = Marshal.load(dump)
 
     assert_equal(r[0].price, 20)
