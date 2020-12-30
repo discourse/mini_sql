@@ -63,7 +63,9 @@ module MiniSql
       private
 
       def run(sql, *params)
-        sql = param_encoder.encode(sql, *params)
+        if params && params.length > 0
+          sql = param_encoder.encode(sql, *params)
+        end
         if block_given?
           stmt = SQLite3::Statement.new(raw_connection, sql)
           yield stmt.execute
