@@ -8,23 +8,33 @@ module MiniSql
       replace(result)
     end
 
-    def self.to_json(result)
-      wrapper =
-        if result.length == 0
-          {}
-        else
-          {
-            "decorator" => result[0].class.decorator.to_s,
-            "fields" => result[0].to_h.keys,
-            "data" => result.map(&:values),
-          }
-        end
+    def self.marshallable(result)
+      new(result)
+    end
 
-      JSON.generate(wrapper)
+    def self.to_json(result)
+      JSON.generate(serialize(result))
     end
 
     def self.from_json(json)
-      wrapper = JSON.parse(json)
+      materialize(JSON.parse(json))
+    end
+
+    private
+
+    def self.serialize(result)
+      if result.length == 0
+        {}
+      else
+        {
+          "decorator" => result[0].class.decorator.to_s,
+          "fields" => result[0].to_h.keys,
+          "data" => result.map(&:values),
+        }
+      end
+    end
+
+    def self.materialize(wrapper)
       if !wrapper["data"]
         []
       else
@@ -35,40 +45,20 @@ module MiniSql
       end
     end
 
-    def self.marshal_dump(result)
-      new(result)
-    end
-
-    private
-
     def _dump(level)
-      self.class.serialize do
-        if size == 0
-          {}
-        else
-          {
-            "decorator" => first.class.decorator.to_s,
-            "fields" => first.to_h.keys,
-            "data" => map(&:values),
-          }
-        end
-      end
+      self.class.marshal_dump(self.class.serialize(self))
     end
 
-    def self.serialize
-      Marshal.dump(yield)
-    end
-
-    def self.deserialize
-      Marshal.load(yield)
+    def self.marshal_dump(wrapper)
+      Marshal.dump(wrapper)
     end
 
     def self._load(dump)
-      wrapper = deserialize { dump }
-      materializer = cached_materializer(wrapper['fields'], wrapper['decorator'])
-      result = self.new(wrapper['data'])
-      result.map! { |row| materializer.materialize(row) }
-      result
+      materialize(marshal_load(dump))
+    end
+
+    def self.marshal_load(dump)
+      Marshal.load(dump)
     end
 
     def self.cached_materializer(fields, decorator_module = nil)
