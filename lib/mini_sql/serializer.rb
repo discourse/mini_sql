@@ -12,24 +12,24 @@ module MiniSql
       new(result)
     end
 
-    def self.to_json(result)
-      JSON.generate(serialize(result))
+    def _dump(level)
+      JSON.generate(serialize)
     end
 
-    def self.from_json(json)
-      materialize(JSON.parse(json))
+    def self._load(dump)
+      materialize(JSON.parse(dump))
     end
 
     private
 
-    def self.serialize(result)
-      if result.length == 0
+    def serialize
+      if length == 0
         {}
       else
         {
-          "decorator" => result[0].class.decorator.to_s,
-          "fields" => result[0].to_h.keys,
-          "data" => result.map(&:values),
+          "decorator" => first.class.decorator.to_s,
+          "fields" => first.to_h.keys,
+          "data" => map(&:values),
         }
       end
     end
@@ -43,22 +43,6 @@ module MiniSql
           materializer.materialize(row)
         end
       end
-    end
-
-    def _dump(level)
-      self.class.marshal_dump(self.class.serialize(self))
-    end
-
-    def self.marshal_dump(wrapper)
-      Marshal.dump(wrapper)
-    end
-
-    def self._load(dump)
-      materialize(marshal_load(dump))
-    end
-
-    def self.marshal_load(dump)
-      Marshal.load(dump)
     end
 
     def self.cached_materializer(fields, decorator_module = nil)
