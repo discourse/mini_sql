@@ -1,26 +1,40 @@
 # frozen_string_literal: true
 
 module MiniSql
-  module Serializer
+  class Serializer < Array
     MAX_CACHE_SIZE = 500
 
-    def self.to_json(result)
-      wrapper =
-        if result.length == 0
-          {}
-        else
-          {
-            "decorator" => result[0].class.decorator.to_s,
-            "fields" => result[0].to_h.keys,
-            "data" => result.map(&:values),
-          }
-        end
-
-      JSON.generate(wrapper)
+    def initialize(result)
+      replace(result)
     end
 
-    def self.from_json(json)
-      wrapper = JSON.parse(json)
+    def self.marshallable(result)
+      new(result)
+    end
+
+    def _dump(level)
+      JSON.generate(serialize)
+    end
+
+    def self._load(dump)
+      materialize(JSON.parse(dump))
+    end
+
+    private
+
+    def serialize
+      if length == 0
+        {}
+      else
+        {
+          "decorator" => first.class.decorator.to_s,
+          "fields" => first.to_h.keys,
+          "data" => map(&:values),
+        }
+      end
+    end
+
+    def self.materialize(wrapper)
       if !wrapper["data"]
         []
       else
