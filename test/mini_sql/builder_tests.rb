@@ -101,4 +101,38 @@ module MiniSql::BuilderTests
     r = builder.query_decorator(ProductDecorator, price: 20, quantity: 3).first
     assert_equal(60, r.amount_price)
   end
+
+  def test_to_sql_without_params
+    builder = @connection.build("SELECT price, quantity AS quantity FROM products /*where*/ /*limit*/ /*order_by*/")
+    builder.where('id = :id', id: 10)
+    builder.where('is_sale = ?', true)
+    builder.limit(50)
+    builder.order_by("created_at DESC")
+
+    sql = <<~SQL.gsub(/[[:space:]]+/, " ").strip
+      SELECT price, quantity AS quantity
+      FROM products
+      WHERE (id = 10) AND (is_sale = true)
+      LIMIT 50
+      ORDER BY created_at DESC
+    SQL
+
+    assert_equal(builder.to_sql, sql)
+  end
+
+  def test_to_sql_with_params
+    builder = @connection.build("SELECT price, quantity AS quantity FROM products WHERE id = :id AND is_sale = :is_sale /*limit*/ /*order_by*/")
+    builder.limit(50)
+    builder.order_by('created_at DESC')
+
+    sql = <<~SQL.gsub(/[[:space:]]+/, " ").strip
+      SELECT price, quantity AS quantity
+      FROM products
+      WHERE id = 10 AND is_sale = true
+      LIMIT 50
+      ORDER BY created_at DESC
+    SQL
+
+    assert_equal(builder.to_sql(id: 10, is_sale: true), sql)
+  end
 end

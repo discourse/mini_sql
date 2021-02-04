@@ -23,7 +23,7 @@ class MiniSql::Builder
     end
   end
 
-  def to_sql
+  def to_sql(hash_args = nil)
     sql = @sql.dup
 
     @sections.each do |k, v|
@@ -49,31 +49,26 @@ class MiniSql::Builder
 
       sql.sub!("/*#{k}*/", joined)
     end
-    sql
+
+    hash_args = @args.merge(hash_args) if hash_args && @args
+    hash_args ||= @args
+    if hash_args
+      @connection.param_encoder.encode(sql, hash_args)
+    else
+      sql
+    end
   end
 
   [:query, :query_single, :query_hash, :exec].each do |m|
     class_eval <<~RUBY
       def #{m}(hash_args = nil)
-        hash_args = @args.merge(hash_args) if hash_args && @args
-        hash_args ||= @args
-        if hash_args
-          @connection.#{m}(to_sql, hash_args)
-        else
-          @connection.#{m}(to_sql)
-        end
+        @connection.#{m}(to_sql(hash_args))
       end
     RUBY
   end
 
   def query_decorator(decorator, hash_args = nil)
-    hash_args = @args.merge(hash_args) if hash_args && @args
-    hash_args ||= @args
-    if hash_args
-      @connection.query_decorator(decorator, to_sql, hash_args)
-    else
-      @connection.query_decorator(decorator, to_sql)
-    end
+    @connection.query_decorator(decorator, to_sql(hash_args))
   end
 
 end
