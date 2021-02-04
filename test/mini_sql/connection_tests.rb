@@ -152,13 +152,12 @@ module MiniSql::ConnectionTests
   end
 
   def test_serializer_marshal
-    r = @connection.query("select 1 one, 'two' two, 'now'::date today")
+    r = @connection.query("select 1 one, 'two' two")
     dump = Marshal.dump(MiniSql::Serializer.marshallable(r))
     r = Marshal.load(dump)
 
     assert_equal(r[0].one, 1)
     assert_equal(r[0].two, "two")
-    assert_equal(r[0].today, Date.today)
     assert_equal(r.length, 1)
   end
 
