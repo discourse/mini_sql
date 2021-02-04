@@ -36,13 +36,13 @@ module MiniSql
 
     def encode_array(sql, array)
       i = -1
-      sql.gsub("?") do |p|
+      sql.gsub("?") do
         i += 1
         quote_val(array[i])
       end
     end
 
-    def quoted_date(value)
+    def quoted_time(value)
       value.utc.iso8601
     end
 
@@ -51,7 +51,8 @@ module MiniSql
       when String     then "'#{conn.escape_string(value.to_s)}'"
       when Numeric    then value.to_s
       when BigDecimal then value.to_s("F")
-      when Date, Time then "'#{quoted_date(value)}'"
+      when Time       then "'#{quoted_time(value)}'"
+      when Date       then "'#{value.to_s}'"
       when Symbol     then "'#{conn.escape_string(value.to_s)}'"
       when true       then "true"
       when false      then "false"
