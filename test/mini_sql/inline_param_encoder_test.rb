@@ -45,5 +45,11 @@ module MiniSql
       result = @encoder.encode("select 1,?,?", "a", 2)
       assert_equal("select 1,'a',2", result)
     end
+
+    def test_encode_dates
+      t = Date.parse('2010-10-01')
+      result = @encoder.encode("select :t", t: t)
+      assert_equal("select '2010-10-01'", result)
+    end
   end
 end
