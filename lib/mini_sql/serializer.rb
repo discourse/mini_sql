@@ -12,12 +12,12 @@ module MiniSql
       new(result)
     end
 
-    def _dump(level)
-      JSON.generate(serialize)
+    def marshal_dump
+      serialize
     end
 
-    def self._load(dump)
-      materialize(JSON.parse(dump))
+    def marshal_load(wrapper)
+      replace self.class.materialize(wrapper)
     end
 
     private
