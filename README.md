@@ -194,6 +194,24 @@ MiniSql is designed to be very minimal. Even though the query builder and type m
 ## Development
 
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+### Local testing
+```bash
+  docker run --name mini-sql-mysql --rm -it -p 33306:3306 -e MYSQL_DATABASE=test_mini_sql -e MYSQL_ALLOW_EMPTY_PASSWORD=yes -d mysql:5.7
+  export MINI_SQL_MYSQL_HOST=127.0.0.1
+  export MINI_SQL_MYSQL_PORT=33306
+  
+  docker run --name mini-sql-postgres --rm -it -p 55432:5432 -e POSTGRES_DB=test_mini_sql -e POSTGRES_HOST_AUTH_METHOD=trust -d postgres
+  export MINI_SQL_PG_USER=postgres
+  export MINI_SQL_PG_HOST=127.0.0.1
+  export MINI_SQL_PG_PORT=55432
+
+  sleep 10 # waiting for up databases
+
+  bundle exec rake
+
+  # end working on mini-sql
+  docker stop mini-sql-postgres mini-sql-mysql
+```
 
 ## Contributing
 

@@ -36,7 +36,13 @@ else
   end
 
   def pg_connection(options = {})
-    pg_conn = PG.connect(dbname: 'test_mini_sql')
+    args = { dbname: 'test_mini_sql' }
+    %i[port host password user].each do |name|
+      if val = ENV["MINI_SQL_PG_#{name.upcase}"]
+        args[name] = val
+      end
+    end
+    pg_conn = PG.connect(args)
     MiniSql::Connection.get(pg_conn, options)
   end
 
