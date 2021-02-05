@@ -13,8 +13,9 @@ gemfile do
   gem 'benchmark-ips'
   gem 'sequel', github: 'jeremyevans/sequel'
   gem 'sequel_pg', github: 'jeremyevans/sequel_pg', require: 'sequel'
-  gem 'swift-db-postgres', github: 'deepfryed/swift-db-postgres'
+  gem 'swift-db-postgres', github: 'deepfryed/swift-db-postgres' # sudo apt-get install uuid-dev
   gem 'draper'
+  gem 'pry'
 end
 
 require 'sequel'
@@ -23,94 +24,20 @@ require 'memory_profiler'
 require 'benchmark/ips'
 require 'mini_sql'
 
-ActiveRecord::Base.establish_connection(
-  :adapter => "postgresql",
-  :database => "test_db"
-)
+require '../mini_sql/bench/shared/generate_data'
 
-DB = Sequel.postgres('test_db')
-
-pg = ActiveRecord::Base.connection.raw_connection
-
-pg.async_exec <<SQL
-drop table if exists topics
-SQL
-
-pg.async_exec <<SQL
-CREATE TABLE topics (
-    id integer NOT NULL PRIMARY KEY,
-    title character varying NOT NULL,
-    last_posted_at timestamp without time zone,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    views integer DEFAULT 0 NOT NULL,
-    posts_count integer DEFAULT 0 NOT NULL,
-    user_id integer,
-    last_post_user_id integer NOT NULL,
-    reply_count integer DEFAULT 0 NOT NULL,
-    featured_user1_id integer,
-    featured_user2_id integer,
-    featured_user3_id integer,
-    avg_time integer,
-    deleted_at timestamp without time zone,
-    highest_post_number integer DEFAULT 0 NOT NULL,
-    image_url character varying,
-    like_count integer DEFAULT 0 NOT NULL,
-    incoming_link_count integer DEFAULT 0 NOT NULL,
-    category_id integer,
-    visible boolean DEFAULT true NOT NULL,
-    moderator_posts_count integer DEFAULT 0 NOT NULL,
-    closed boolean DEFAULT false NOT NULL,
-    archived boolean DEFAULT false NOT NULL,
-    bumped_at timestamp without time zone NOT NULL,
-    has_summary boolean DEFAULT false NOT NULL,
-    vote_count integer DEFAULT 0 NOT NULL,
-    archetype character varying DEFAULT 'regular'::character varying NOT NULL,
-    featured_user4_id integer,
-    notify_moderators_count integer DEFAULT 0 NOT NULL,
-    spam_count integer DEFAULT 0 NOT NULL,
-    pinned_at timestamp without time zone,
-    score double precision,
-    percent_rank double precision DEFAULT 1.0 NOT NULL,
-    subtype character varying,
-    slug character varying,
-    deleted_by_id integer,
-    participant_count integer DEFAULT 1,
-    word_count integer,
-    excerpt character varying(1000),
-    pinned_globally boolean DEFAULT false NOT NULL,
-    pinned_until timestamp without time zone,
-    fancy_title character varying(400),
-    highest_staff_post_number integer DEFAULT 0 NOT NULL,
-    featured_link character varying
-)
-SQL
+ar_connection, conn_config = GenerateData.new(count_records: 1_000).call
+PG_CONN = ar_connection.raw_connection
+MINI_SQL = MiniSql::Connection.get(PG_CONN)
+DB = Sequel.connect(ar_connection.instance_variable_get(:@config).slice(:database, :user, :password, :host, :adapter))
+# connects over unix socket
+SWIFT = Swift::DB::Postgres.new(db: conn_config[:database], user: conn_config[:user], password: conn_config[:password], host: conn_config[:host])
 
 class Topic < ActiveRecord::Base
 end
 
 class TopicSequel < Sequel::Model(:topics)
 end
-
-Topic.transaction do
-  topic = {
-  }
-  Topic.columns.each do |c|
-    topic[c.name.to_sym] = case c.type
-                           when :integer then 1
-                           when :datetime then Time.now
-                           when :boolean then false
-                           else "HELLO WORLD" * 2
-                           end
-  end
-
-  1000.times do |id|
-    topic[:id] = id
-    Topic.create!(topic)
-  end
-end
-
-$conn = ActiveRecord::Base.connection.raw_connection
 
 def ar_title_id_pluck
   s = +""
@@ -133,7 +60,7 @@ end
 def pg_title_id
   s = +""
   # use the safe pattern here
-  r = $conn.async_exec(-"select id, title from topics order by id limit 1000")
+  r = PG_CONN.async_exec(-"select id, title from topics order by id limit 1000")
 
   # this seems fastest despite extra arrays, cause array of arrays is generated
   # in c code
@@ -150,11 +77,9 @@ def pg_title_id
   s
 end
 
-$mini_sql = MiniSql::Connection.get($conn)
-
 def mini_sql_title_id
   s = +""
-  $mini_sql.query(-"select id, title from topics order by id limit 1000").each do |t|
+  MINI_SQL.query(-"select id, title from topics order by id limit 1000").each do |t|
     s << t.id.to_s
     s << t.title
   end
@@ -183,7 +108,7 @@ end
 def mini_sql_title_id_query_single
   s = +""
   i = 0
-  r = $mini_sql.query_single(-"select id, title from topics order by id limit 1000")
+  r = MINI_SQL.query_single(-"select id, title from topics order by id limit 1000")
   while i < r.length
     s << r[i].to_s
     s << r[i + 1]
@@ -192,13 +117,10 @@ def mini_sql_title_id_query_single
   s
 end
 
-# connects over unix socket
-$swift = Swift::DB::Postgres.new(db: "test_db")
-
 def swift_select_title_id(l = 1000)
   s = +''
   i = 0
-  r = $swift.execute("select id, title from topics order by id limit 1000")
+  r = SWIFT.execute("select id, title from topics order by id limit 1000")
   while i < r.selected_rows
     s << r.get(i, 0).to_s
     s << r.get(i, 1)
@@ -219,175 +141,6 @@ results = [
 ]
 
 exit(-1) unless results.uniq.length == 1
-
-# https://github.com/drapergem/draper
-class TopicDraper < Draper::Decorator
-  delegate :id
-
-  def title_bang
-    object.title + '!!!'
-  end
-end
-
-# https://ruby-doc.org/stdlib-2.5.1/libdoc/delegate/rdoc/SimpleDelegator.html
-class TopicSimpleDelegator < SimpleDelegator
-  def title_bang
-    title + '!!!'
-  end
-end
-
-class TopicDecoratorSequel < TopicSequel
-  def title_bang
-    title + '!!!'
-  end
-end
-
-class TopicArModel < Topic
-  def title_bang
-    title + '!!!'
-  end
-end
-
-module TopicDecorator
-  def title_bang
-    title + '!!!'
-  end
-end
-
-Benchmark.ips do |r|
-  r.report('query_decorator') do |n|
-    while n > 0
-      $mini_sql.query_decorator(TopicDecorator, 'select id, title from topics order by id limit 1000').each do |obj|
-        obj.title_bang
-        obj.id
-      end
-      n -= 1
-    end
-  end
-  r.report('extend') do |n|
-    while n > 0
-      $mini_sql.query('select id, title from topics order by id limit 1000').each do |obj|
-        d_obj = obj.extend(TopicDecorator)
-        d_obj.title_bang
-        d_obj.id
-      end
-      n -= 1
-    end
-  end
-  r.report('draper') do |n|
-    while n > 0
-      $mini_sql.query('select id, title from topics order by id limit 1000').each do |obj|
-        d_obj = TopicDraper.new(obj)
-        d_obj.title_bang
-        d_obj.id
-      end
-      n -= 1
-    end
-  end
-  r.report('simple_delegator') do |n|
-    while n > 0
-      $mini_sql.query('select id, title from topics order by id limit 1000').each do |obj|
-        d_obj = TopicSimpleDelegator.new(obj)
-        d_obj.title_bang
-        d_obj.id
-      end
-      n -= 1
-    end
-  end
-  r.report('query') do |n|
-    while n > 0
-      $mini_sql.query('select id, title from topics order by id limit 1000').each do |obj|
-        obj.title + '!!!'
-        obj.id
-      end
-      n -= 1
-    end
-  end
-  r.report('ar model') do |n|
-    while n > 0
-      TopicArModel.limit(1000).order(:id).select(:id, :title).each do |obj|
-        obj.title_bang
-        obj.id
-      end
-      n -= 1
-    end
-  end
-  r.report('sequel model') do |n|
-    while n > 0
-      TopicDecoratorSequel.limit(1000).order(:id).select(:id, :title).each do |obj|
-        obj.title_bang
-        obj.id
-      end
-      n -= 1
-    end
-  end
-
-  r.compare!
-end
-
-# Comparison:
-#                query:      828.4 i/s
-#      query_decorator:      819.3 i/s - same-ish: difference falls within error
-#         sequel model:      672.4 i/s - 1.23x  slower
-#               extend:      519.4 i/s - 1.59x  slower
-#     simple_delegator:      496.8 i/s - 1.67x  slower
-#               draper:      416.2 i/s - 1.99x  slower
-#             ar model:      113.4 i/s - 7.30x  slower
-
-Benchmark.ips do |r|
-  r.report('query_hash') do |n|
-    while n > 0
-      $mini_sql.query_hash('select id, title from topics order by id limit 1000').each do |hash|
-        [hash['id'], hash['title']]
-      end
-      n -= 1
-    end
-  end
-  r.report('query_array') do |n|
-    while n > 0
-      $mini_sql.query_array('select id, title from topics order by id limit 1000').each do |id, title|
-        [id, title]
-      end
-      n -= 1
-    end
-  end
-  r.report('query') do |n|
-    while n > 0
-      $mini_sql.query('select id, title from topics order by id limit 1000').each do |obj|
-        [obj.id, obj.title]
-      end
-      n -= 1
-    end
-  end
-
-  r.compare!
-end
-
-# Comparison:
-#         query_array:     1351.6 i/s
-#               query:      963.8 i/s - 1.40x  slower
-#          query_hash:      787.4 i/s - 1.72x  slower
-
-Benchmark.ips do |r|
-  r.report('query_single') do |n|
-    while n > 0
-      $mini_sql.query_single('select id from topics order by id limit 1000')
-      n -= 1
-    end
-  end
-  r.report('query_array') do |n|
-    while n > 0
-      $mini_sql.query_array('select id from topics order by id limit 1000').flatten
-      n -= 1
-    end
-  end
-
-  r.compare!
-end
-
-# Comparison:
-#        query_single:     2368.9 i/s
-#         query_array:     1350.1 i/s - 1.75x  slower
 
 Benchmark.ips do |r|
   r.report("ar select title id") do |n|
@@ -441,71 +194,12 @@ Benchmark.ips do |r|
   r.compare!
 end
 
-def wide_topic_ar
-  Topic.first
-end
-
-def wide_topic_pg
-  r = $conn.async_exec("select * from topics limit 1")
-  row = r.first
-  r.clear
-  row
-end
-
-def wide_topic_sequel
-  TopicSequel.first
-end
-
-def wide_topic_mini_sql
-  $conn.query("select * from topics limit 1").first
-end
-
-Benchmark.ips do |r|
-  r.report("wide topic ar") do |n|
-    while n > 0
-      wide_topic_ar
-      n -= 1
-    end
-  end
-  r.report("wide topic sequel") do |n|
-    while n > 0
-      wide_topic_sequel
-      n -= 1
-    end
-  end
-  r.report("wide topic pg") do |n|
-    while n > 0
-      wide_topic_pg
-      n -= 1
-    end
-  end
-  r.report("wide topic mini sql") do |n|
-    while n > 0
-      wide_topic_mini_sql
-      n -= 1
-    end
-  end
-  r.compare!
-end
-
 # Comparison:
-#   pg select title id:     1519.7 i/s
-# mini_sql query_single title id:     1335.0 i/s - 1.14x  slower
-# sequel title id pluck:     1261.6 i/s - 1.20x  slower
-# mini_sql select title id:     1188.6 i/s - 1.28x  slower
-#       swift title id:     1077.5 i/s - 1.41x  slower
-# sequel title id select:      969.7 i/s - 1.57x  slower
-# ar select title id pluck:      738.7 i/s - 2.06x  slower
-#   ar select title id:      149.6 i/s - 10.16x  slower
-#
-#
-# Comparison:
-#        wide topic pg:     7474.0 i/s
-#  wide topic mini sql:     7355.2 i/s - same-ish: difference falls within error
-#    wide topic sequel:     5696.8 i/s - 1.31x  slower
-#        wide topic ar:     2515.0 i/s - 2.97x  slower
-
-# to run deep analysis run
-# MemoryProfiler.report do
-#   ar
-# end.pretty_print
+#   pg select title id:               1315.1 i/s
+#       swift title id:               1268.4 i/s - same-ish: difference falls within error
+# mini_sql query_single title id:     1206.3 i/s - same-ish: difference falls within error
+# mini_sql select title id:           1063.8 i/s - 1.24x  (± 0.00) slower
+# sequel title id pluck:              1054.5 i/s - 1.25x  (± 0.00) slower
+# sequel title id select:              814.1 i/s - 1.62x  (± 0.00) slower
+# ar select title id pluck:            667.7 i/s - 1.97x  (± 0.00) slower
+#   ar select title id:                215.8 i/s - 6.09x  (± 0.00) slower
