@@ -54,6 +54,19 @@ module MiniSql::BuilderTests
     assert_equal(3, r.length)
   end
 
+  def test_group_by
+    @connection.exec("create temporary table ta(x int, t text)")
+    @connection.exec("insert into ta(x,t) values(1 ,'a'),(2,'a'),(3,  'b')")
+
+    builder = @connection.build("/*select*/ from ta /*group_by*/")
+    builder.select('t, SUM(x)')
+    builder.group_by("t")
+
+    r = builder.query_array.to_h
+
+    assert_equal({ 'a' => 3, 'b' => 3 }, r)
+  end
+
   def test_set
     @connection.exec("create temp table ta(x int, y int)")
 

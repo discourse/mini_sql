@@ -9,7 +9,7 @@ class MiniSql::Builder
     @connection = connection
   end
 
-  [:set, :where2, :where, :order_by, :limit, :left_join, :join, :offset, :select].each do |k|
+  [:set, :where2, :where, :order_by, :limit, :left_join, :join, :offset, :select, :group_by].each do |k|
     define_method k do |data, *args|
       if args && (args.length == 1) && (Hash === args[0])
         @args ||= {}
@@ -43,6 +43,8 @@ class MiniSql::Builder
         joined = (+"OFFSET ") << v.last.to_i.to_s
       when :order_by
         joined = (+"ORDER BY ") << v.join(" , ")
+      when :group_by
+        joined = (+"GROUP BY ") << v.join(" , ")
       when :set
         joined = (+"SET ") << v.join(" , ")
       end
@@ -59,7 +61,7 @@ class MiniSql::Builder
     end
   end
 
-  [:query, :query_single, :query_hash, :exec].each do |m|
+  [:query, :query_single, :query_hash, :query_array, :exec].each do |m|
     class_eval <<~RUBY
       def #{m}(hash_args = nil)
         @connection.#{m}(to_sql(hash_args))
