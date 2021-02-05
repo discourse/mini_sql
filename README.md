@@ -187,6 +187,39 @@ Note, in Postgres streaming is going to be slower than non-streaming options due
 
 Streaming support is only implemented in the postgres backend at the moment, PRs welcome to add to other backends.
 
+## Prepared Statements
+See [benchmark](https://github.com/discourse/mini_sql/tree/master/bench/prepared_perf.rb).
+
+By default prepared cache size is 500 queries. Use only for frequent queries.
+
+Support in the postgres backend at the moment, PRs welcome to add to other backends.
+
+```ruby
+MiniSql.prepared do 
+  conn.query("select * from table where id = ?", id: 10)
+end
+
+ids = (1..100).to_a
+builder = conn.build("select * from table /*where*/")
+builder.where("id IN (?)", ids)
+
+MiniSql.prepared(ids.size <= 3) do 
+  builder.query
+end
+```
+
+## Rails
+```ruby
+# Gemfile
+gem 'mini_sql', require: 'mini_sql/active_record/v6.0.rb'
+
+# config/initializers/mini_sql.rb
+::MINI_SQL = ::MiniSql::ActiveRecordConnection.instance
+
+# app code
+::MINI_SQL.query('SELECT 1')
+```
+
 ## I want more features!
 
 MiniSql is designed to be very minimal. Even though the query builder and type materializer give you a lot of mileage, it is not intended to be a fully fledged ORM. If you are looking for an ORM I recommend investigating ActiveRecord or Sequel which provide significantly more features.
