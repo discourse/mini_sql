@@ -18,7 +18,7 @@ require 'mini_sql'
 
 require '../mini_sql/bench/shared/generate_data'
 
-ar_connection = GenerateData.new(count_records: 10_000).call
+ar_connection, _ = GenerateData.new(count_records: 10_000).call
 MINI_SQL = MiniSql::Connection.get(ar_connection.raw_connection)
 
 
@@ -34,9 +34,7 @@ SQL
 Benchmark.ips do |x|
   x.report("ps") do |n|
     while n > 0
-      MiniSql.prepared do
-        MINI_SQL.query(sql, rand(100))
-      end
+      MINI_SQL.prepared.query(sql, rand(100))
       n -= 1
     end
   end

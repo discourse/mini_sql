@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'mini_sql'
+require 'active_record'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -36,9 +37,7 @@ module ActiveRecord
 end
 
 module MiniSql
-
-  class ActiveRecordConnection < Postgres::Connection
-
+  class Postgres::Connection
     def self.instance
       new(nil)
     end
@@ -49,17 +48,17 @@ module MiniSql
     end
 
     private def run(sql, params)
-      if ActiveRecord::Base.connection.prepared_statements && MiniSql.prepared?
-        prepared_sql, binds, bind_names = MiniSql::Postgres::PreparedStatementParamEncoder.encode(sql, *params)
-        ActiveRecord::Base.connection.exec_mini_sql_prepare_statement(prepared_sql, binds, bind_names)
-      else
-        sql = param_encoder.encode(sql, *params)
-        ActiveRecord::Base.connection.send(:log, sql) do
-          raw_connection.async_exec(sql)
-        end
+      sql = param_encoder.encode(sql, *params)
+      ActiveRecord::Base.connection.send(:log, sql) do
+        raw_connection.async_exec(sql)
       end
     end
-
   end
 
+  class Postgres::ConnectionPrepared
+    private def run(sql, params)
+      prepared_sql, binds, bind_names = MiniSql::Postgres::PreparedStatementParamEncoder.encode(sql, *params)
+      ActiveRecord::Base.connection.exec_mini_sql_prepare_statement(prepared_sql, binds, bind_names)
+    end
+  end
 end

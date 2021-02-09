@@ -11,7 +11,6 @@ require_relative "mini_sql/inline_param_encoder"
 require_relative "mini_sql/decoratable"
 require_relative "mini_sql/serializer"
 require_relative "mini_sql/result"
-require_relative "mini_sql/prepared"
 
 module MiniSql
   if RUBY_ENGINE == 'jruby'
@@ -24,6 +23,7 @@ module MiniSql
       autoload :Coders, "mini_sql/postgres/coders"
       autoload :Connection, "mini_sql/postgres/connection"
       autoload :DeserializerCache, "mini_sql/postgres/deserializer_cache"
+      autoload :ConnectionPrepared, "mini_sql/postgres/connection_prepared"
       autoload :PreparedStatementsCache, "mini_sql/postgres/prepared_statements_cache"
       autoload :PreparedStatementParamEncoder, "mini_sql/postgres/prepared_statement_param_encoder"
     end

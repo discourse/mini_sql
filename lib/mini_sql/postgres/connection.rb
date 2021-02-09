@@ -37,14 +37,23 @@ module MiniSql
       # @param type_map [PG::TypeMap] a type mapper for all results returned, can be nil
       def initialize(raw_connection, args = nil)
         @raw_connection = raw_connection
-        @prepared_statements_cache ||= PreparedStatementsCache.new
         @deserializer_cache = (args && args[:deserializer_cache]) || self.class.default_deserializer_cache
         @param_encoder = (args && args[:param_encoder]) || InlineParamEncoder.new(self)
         @type_map = args && args[:type_map]
+
+        @prepared = MiniSql::Postgres::ConnectionPrepared.new(self, @deserializer_cache)
       end
 
       def type_map
         @type_map ||= self.class.type_map(raw_connection)
+      end
+
+      def prepared(condition = true)
+        if condition
+          @prepared
+        else
+          self
+        end
       end
 
       # Returns a flat array containing all results.
@@ -196,16 +205,10 @@ module MiniSql
       private
 
       def run(sql, params)
-        if MiniSql.prepared?
-          prepared_sql, binds, _bind_names = PreparedStatementParamEncoder.encode(sql, *params)
-          prepare_statement_key = @prepared_statements_cache.prepare_statement(raw_connection, prepared_sql)
-          raw_connection.exec_prepared(prepare_statement_key, binds)
-        else
-          if params && params.length > 0
-            sql = param_encoder.encode(sql, *params)
-          end
-          raw_connection.async_exec(sql)
+        if params && params.length > 0
+          sql = param_encoder.encode(sql, *params)
         end
+        raw_connection.async_exec(sql)
       end
 
     end
