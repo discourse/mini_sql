@@ -21,8 +21,6 @@ require '../mini_sql/bench/shared/generate_data'
 ar_connection, _ = GenerateData.new(count_records: 10_000).call
 MINI_SQL = MiniSql::Connection.get(ar_connection.raw_connection)
 
-raise 'ActiveRecord prepared_statements not enable' unless ActiveRecord::Base.connection.prepared_statements
-
 def mini_sql(is_prepared, user_id)
   MINI_SQL
     .build(<<~SQL)
@@ -37,7 +35,16 @@ def mini_sql(is_prepared, user_id)
     .query
 end
 
-def ar(user_id)
+def ar_prepared(user_id)
+  Topic
+    .select(User.arel_table[:first_name] , Topic.arel_table[:id].count)
+    .joins(:user, :category)
+    .where(user_id: user_id)
+    .group(User.arel_table[:id])
+    .load
+end
+
+def ar_unprepared(user_id)
   Topic
     .select('users.first_name, count(distinct topics.id) topics_count')
     .joins(:user, :category)
@@ -59,9 +66,15 @@ Benchmark.ips do |x|
       n -= 1
     end
   end
-  x.report("ar") do |n|
+  x.report("ar_prepared") do |n|
     while n > 0
-      ar(rand(100))
+      ar_prepared(rand(100))
+      n -= 1
+    end
+  end
+  x.report("ar_unprepared") do |n|
+    while n > 0
+      ar_unprepared(rand(100))
       n -= 1
     end
   end
@@ -70,6 +83,7 @@ Benchmark.ips do |x|
 end
 
 # Comparison:
-#    mini_sql_prepared:     8411.0 i/s
-#             mini_sql:     2735.2 i/s - 3.08x  (± 0.00) slower
-#                   ar:      966.1 i/s - 8.71x  (± 0.00) slower
+#    mini_sql_prepared:     8386.2 i/s
+#             mini_sql:     2742.3 i/s - 3.06x  (± 0.00) slower
+#          ar_prepared:     1599.3 i/s - 5.24x  (± 0.00) slower
+#        ar_unprepared:      868.9 i/s - 9.65x  (± 0.00) slower
