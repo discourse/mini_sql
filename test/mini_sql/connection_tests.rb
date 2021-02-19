@@ -193,6 +193,7 @@ module MiniSql::ConnectionTests
     r2 = @connection.query_decorator(ProductDecorator, 'select 20 price, 3 quantity')
 
     assert r1 != r2
+    assert_equal([r1] | [r2], [r1] + [r2])
   end
 
   def test_equality_distinct_fields
