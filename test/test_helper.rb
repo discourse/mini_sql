@@ -21,6 +21,7 @@ else
   require "pg"
   require "sqlite3"
   require "mysql2"
+  require 'active_record'
 
   def mysql_connection(options = {})
     args = { database: 'test_mini_sql', username: 'root', password: '' }
@@ -44,6 +45,17 @@ else
     end
     pg_conn = PG.connect(**args)
     MiniSql::Connection.get(pg_conn, options)
+  end
+
+  def active_record_pg_connection(options = {})
+    args = { adapter: 'postgresql', dbname: 'test_mini_sql' }
+    %i[port host password user].each do |name|
+      if val = ENV["MINI_SQL_PG_#{name.upcase}"]
+        args[name] = val
+      end
+    end
+    ar_conn = ActiveRecord::Base.establish_connection(**args).checkout
+    MiniSql::Connection.get(ar_conn, options)
   end
 
   def sqlite3_connection(options = {})

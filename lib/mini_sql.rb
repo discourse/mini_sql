@@ -31,6 +31,10 @@ module MiniSql
       autoload :PreparedBinds,      "mini_sql/postgres/prepared_binds"
     end
 
+    module ActiveRecordPostgres
+      autoload :Connection, "mini_sql/active_record_postgres/connection"
+    end
+
     module Sqlite
       autoload :Connection,         "mini_sql/sqlite/connection"
       autoload :DeserializerCache,  "mini_sql/sqlite/deserializer_cache"

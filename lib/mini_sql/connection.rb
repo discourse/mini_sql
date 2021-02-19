@@ -6,6 +6,8 @@ module MiniSql
     def self.get(raw_connection, options = {})
       if (defined? ::PG::Connection) && (PG::Connection === raw_connection)
         Postgres::Connection.new(raw_connection, options)
+      elsif (defined? ActiveRecord::ConnectionAdapters::PostgreSQLAdapter) && (ActiveRecord::ConnectionAdapters::PostgreSQLAdapter === raw_connection)
+        ActiveRecordPostgres::Connection.new(raw_connection, options)
       elsif (defined? ::ArJdbc)
         Postgres::Connection.new(raw_connection, options)
       elsif (defined? ::SQLite3::Database) && (SQLite3::Database === raw_connection)
