@@ -18,7 +18,7 @@ module MiniSql
     end
 
     def ==(other_result)
-      self.class.decorator == other_result.class.decorator && 
+      self.class.decorator == other_result.class.decorator &&
       self.instance_variables == other_result.instance_variables &&
       self.values == other_result.values
     end
