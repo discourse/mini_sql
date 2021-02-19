@@ -48,13 +48,12 @@ module MiniSql
     def self.cached_materializer(fields, decorator_module = nil)
       @cache ||= {}
       key = fields
-      m = @cache.delete(key)
-      if m
-        @cache[key] = m
-      else
-        m = @cache[key] = materializer(fields)
-        @cache.shift if @cache.length > MAX_CACHE_SIZE
-      end
+      m = @cache[key] ||
+        begin
+          _m = @cache[key] = materializer(fields)
+          @cache.shift if @cache.length > MAX_CACHE_SIZE
+          _m
+        end
 
       if decorator_module && decorator_module.length > 0
         decorator = Kernel.const_get(decorator_module)

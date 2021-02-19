@@ -18,13 +18,12 @@ module MiniSql
         key = result.fields
 
         # trivial fast LRU implementation
-        materializer = @cache.delete(key)
-        if materializer
-          @cache[key] = materializer
-        else
-          materializer = @cache[key] = new_row_matrializer(result)
-          @cache.shift if @cache.length > @max_size
-        end
+        materializer = @cache[key] ||
+          begin
+            _materializer = @cache[key] = new_row_matrializer(result)
+            @cache.shift if @cache.length > @max_size
+            _materializer
+          end
 
         materializer.include(decorator_module) if decorator_module
 
