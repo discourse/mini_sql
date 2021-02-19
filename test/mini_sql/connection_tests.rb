@@ -188,14 +188,21 @@ module MiniSql::ConnectionTests
     assert_equal([r1] | [r2], [r1])
   end
 
-  def test_equality_different_fields
+  def test_equality_mixed
+    r1 = @connection.query('select 20 price, 3 quantity')
+    r2 = @connection.query_decorator(ProductDecorator, 'select 20 price, 3 quantity')
+
+    assert r1 != r2
+  end
+
+  def test_equality_distinct_fields
     r1 = @connection.query("select 1 one, 'two' two, 3 three")
     r2 = @connection.query("select 1 one, 'two' two")
 
     assert r1 != r2
   end
 
-  def test_equality_different_values
+  def test_equality_distinct_values
     r1 = @connection.query("select 1 one, 'two' two")
     r2 = @connection.query("select 1 one, 2 two")
 
