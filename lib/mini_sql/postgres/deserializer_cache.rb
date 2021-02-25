@@ -12,7 +12,7 @@ module MiniSql
       end
 
       def materializer(result)
-        key = result.fields
+        key = result.fields.join(',')
 
         materializer = @cache.delete(key)
         if materializer
@@ -28,7 +28,7 @@ module MiniSql
       def materialize(result, decorator_module = nil)
         return [] if result.ntuples == 0
 
-        key = result.fields
+        key = result.fields.join(',')
 
         # trivial fast LRU implementation
         materializer = @cache.delete(key)
