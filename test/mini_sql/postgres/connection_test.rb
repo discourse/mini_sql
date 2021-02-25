@@ -14,13 +14,13 @@ class MiniSql::Postgres::TestConnection < MiniTest::Test
   include MiniSql::ConnectionTests
 
   def test_serializer_marshal_with_date
-    r = @connection.query("select 1 one, 'two' two, 'now'::date today", Date.today)
+    r = @connection.query("select 1 one, 'two' two, '2020-02-02'::date today")
     dump = Marshal.dump(MiniSql::Serializer.marshallable(r))
     r = Marshal.load(dump)
 
     assert_equal(r[0].one, 1)
     assert_equal(r[0].two, "two")
-    assert_equal(r[0].today, Date.today)
+    assert_equal(r[0].today, Date.new(2020, 2, 2))
     assert_equal(r.length, 1)
   end
 
