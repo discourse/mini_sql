@@ -15,7 +15,7 @@ module MiniSql
 
         return [] if result.ntuples == 0
 
-        key = result.fields
+        key = result.fields.join(',')
 
         # trivial fast LRU implementation
         materializer = @cache.delete(key)
