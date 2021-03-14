@@ -20,7 +20,7 @@ jobs:
     name: Ruby ${{ matrix.ruby }}
     services:
       postgres:
-        image: postgres:9.6
+        image: postgres:10
         env:
           POSTGRES_PASSWORD: postgres
         ports:

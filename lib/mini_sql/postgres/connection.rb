@@ -41,7 +41,7 @@ module MiniSql
         @param_encoder = (args && args[:param_encoder]) || InlineParamEncoder.new(self)
         @type_map = args && args[:type_map]
 
-        @prepared = MiniSql::Postgres::ConnectionPrepared.new(self, @deserializer_cache)
+        @prepared = PreparedConnection.new(self, @deserializer_cache)
       end
 
       def type_map
@@ -49,11 +49,7 @@ module MiniSql
       end
 
       def prepared(condition = true)
-        if condition
-          @prepared
-        else
-          self
-        end
+        condition ? @prepared : self
       end
 
       # Returns a flat array containing all results.

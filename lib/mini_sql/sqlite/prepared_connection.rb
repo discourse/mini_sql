@@ -1,17 +1,19 @@
 # frozen_string_literal: true
 
 module MiniSql
-  module Postgres
-    class ConnectionPrepared < MiniSql::Postgres::Connection
+  module Sqlite
+    class PreparedConnection < Connection
+
       attr_reader :unprepared
 
       def initialize(unprepared_connection, deserializer_cache)
         @unprepared         = unprepared_connection
         @raw_connection     = unprepared_connection.raw_connection
         @deserializer_cache = deserializer_cache
-        @type_map           = unprepared_connection.type_map
         @param_encoder      = unprepared_connection.param_encoder
-        @prepared_cache     = PreparedStatementsCache.new
+
+        @prepared_cache     = PreparedCache.new(@raw_connection)
+        @param_binder       = PreparedBinds.new
       end
 
       def build(_)
@@ -19,18 +21,20 @@ module MiniSql
       end
 
       def prepared(condition = true)
-        if condition
-          self
-        else
-          @unprepared
-        end
+        condition ? self : @unprepared
       end
 
       private def run(sql, params)
-        prepared_sql, binds, _bind_names = PreparedStatementParamEncoder.encode(sql, *params)
-        prepare_statement_key = @prepared_cache.prepare_statement(raw_connection, prepared_sql)
-        raw_connection.exec_prepared(prepare_statement_key, binds)
+        prepared_sql, binds, _bind_names = @param_binder.bindinize(sql, params)
+        statement = @prepared_cache.prepare_statement(prepared_sql)
+        statement.bind_params(binds)
+        if block_given?
+          yield statement.execute
+        else
+          statement.execute.to_a
+        end
       end
+
     end
   end
 end

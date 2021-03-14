@@ -56,3 +56,4 @@ require "time"
 
 require_relative "mini_sql/connection_tests"
 require_relative "mini_sql/builder_tests"
+require_relative "mini_sql/prepared_connection_tests"

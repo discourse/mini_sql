@@ -193,8 +193,6 @@ See [benchmark mini_sql](https://github.com/discourse/mini_sql/tree/master/bench
 
 By default prepared cache size is 500 queries. Use prepared queries only for frequent queries.
 
-Support in the postgres backend at the moment, PRs welcome to add to other backends.
-
 ```ruby
 conn.prepared.query("select * from table where id = ?", id: 10)
 
@@ -202,18 +200,6 @@ ids = (1..100).to_a
 builder = conn.build("select * from table /*where*/")
 builder.where("id IN (?)", ids)
 builder.prepared(ids.size <= 3).query
-```
-
-## Rails
-```ruby
-# Gemfile
-gem 'mini_sql', require: 'mini_sql/frameworks/rails'
-
-# config/initializers/mini_sql.rb
-::MINI_SQL = ::MiniSql::ActiveRecordConnection.instance
-
-# app code
-::MINI_SQL.query('SELECT 1')
 ```
 
 ## I want more features!

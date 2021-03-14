@@ -9,6 +9,12 @@ module MiniSql
         @raw_connection = raw_connection
         @param_encoder = (args && args[:param_encoder]) || InlineParamEncoder.new(self)
         @deserializer_cache = (args && args[:deserializer_cache]) || DeserializerCache.new
+
+        @prepared = PreparedConnection.new(self, @deserializer_cache)
+      end
+
+      def prepared(condition = true)
+        condition ? @prepared : self
       end
 
       def query_single(sql, *params)
@@ -68,7 +74,9 @@ module MiniSql
         end
         if block_given?
           stmt = SQLite3::Statement.new(raw_connection, sql)
-          yield stmt.execute
+          result = yield stmt.execute
+          stmt.close
+          result
         else
           raw_connection.execute(sql)
         end
