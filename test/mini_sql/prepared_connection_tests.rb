@@ -8,10 +8,6 @@ module MiniSql::PreparedConnectionTests
   end
 
   def assert_last_stmt(statement_sql, msg = nil)
-    unless class_name == 'MiniSql::Postgres::TestPreparedConnection'
-      statement_sql = statement_sql.gsub(/\$\d/, '?')
-    end
-
     stmt = last_prepared_statement
     msg = message(msg) { "Expected #{mu_pp(statement_sql)} to be #{mu_pp(stmt)}" }
     assert(statement_sql == stmt, msg)

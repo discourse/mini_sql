@@ -21,6 +21,10 @@ class MiniSql::Mysql::TestPreparedConnection < MiniTest::Test
     @unprepared_connection.query("select * from mysql.general_log WHERE command_type= 'Prepare'").last&.argument
   end
 
+  def assert_last_stmt(statement_sql)
+    super statement_sql.gsub(/\$\d/, '?')
+  end
+
   def test_boolean_param
     r = @prepared_connection.query("SELECT * FROM posts WHERE active = ?", true)
 

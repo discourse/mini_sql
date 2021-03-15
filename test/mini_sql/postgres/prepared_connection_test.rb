@@ -20,14 +20,14 @@ class MiniSql::Postgres::TestPreparedConnection < MiniTest::Test
   def test_time
     r = @prepared_connection.query("select :date::timestamp - '10 days'::interval AS funday", date: Time.parse('2010-10-11T02:22:00Z'))
 
-    assert_equal "select $1::timestamp - '10 days'::interval AS funday", last_prepared_statement
+    assert_last_stmt "select $1::timestamp - '10 days'::interval AS funday"
     assert_equal Time.parse('2010-10-01T02:22:00Z'), r[0].funday
   end
 
   def test_date
     r = @prepared_connection.query("select :date::date - 10 AS funday", date: Date.parse('2010-10-11'))
 
-    assert_equal 'select $1::date - 10 AS funday', last_prepared_statement
+    assert_last_stmt 'select $1::date - 10 AS funday'
     assert_equal Date.parse('2010-10-01'), r[0].funday
   end
 

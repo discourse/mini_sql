@@ -22,6 +22,10 @@ class MiniSql::Sqlite::TestPreparedConnection < MiniTest::Test
       &.sql
   end
 
+  def assert_last_stmt(statement_sql)
+    super statement_sql.gsub(/\$\d/, '?')
+  end
+
   def test_boolean_param
     r = @prepared_connection.query("SELECT * FROM posts WHERE active = ?", 1)
 
