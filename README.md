@@ -196,10 +196,10 @@ By default prepared cache size is 500 queries. Use prepared queries only for fre
 ```ruby
 conn.prepared.query("select * from table where id = ?", id: 10)
 
-ids = (1..100).to_a
+ids = rand(100) < 90 ? [1] : [1, 2]
 builder = conn.build("select * from table /*where*/")
 builder.where("id IN (?)", ids)
-builder.prepared(ids.size <= 3).query
+builder.prepared(ids.size == 1).query # most frequent query
 ```
 
 ## I want more features!
