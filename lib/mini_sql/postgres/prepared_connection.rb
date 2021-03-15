@@ -26,7 +26,7 @@ module MiniSql
       end
 
       private def run(sql, params)
-        prepared_sql, binds, _bind_names = @param_binder.bindinize(sql, *params)
+        prepared_sql, binds, _bind_names = @param_binder.bind(sql, *params)
         prepare_statement_key = @prepared_cache.prepare_statement(prepared_sql)
         raw_connection.exec_prepared(prepare_statement_key, binds)
       end

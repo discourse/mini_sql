@@ -7,15 +7,15 @@ module MiniSql
       # For compatibility with Active Record
       BindName = Struct.new(:name)
 
-      def bindinize(sql, *params)
+      def bind(sql, *params)
         if Hash === (hash = params[0])
-          bindinize_hash(sql, hash)
+          bind_hash(sql, hash)
         else
-          bindinize_array(sql, params)
+          bind_array(sql, params)
         end
       end
 
-      def bindinize_hash(sql, hash)
+      def bind_hash(sql, hash)
         sql = sql.dup
         binds = []
         bind_names = []
@@ -39,7 +39,7 @@ module MiniSql
         [sql, binds, bind_names]
       end
 
-      def bindinize_array(sql, array)
+      def bind_array(sql, array)
         sql = sql.dup
         param_i = 0
         i = 0
