@@ -18,7 +18,7 @@ module MiniSql
       end
 
       def build(_)
-        raise 'Builder not may create on prepare connection, instead `::MINI_SQL.prepared.build(sql).query` use `::MINI_SQL.build(sql).prepared.query`'
+        raise 'Builder can not be called on prepared connections, instead of `::MINI_SQL.prepared.build(sql).query` use `::MINI_SQL.build(sql).prepared.query`'
       end
 
       def prepared(condition = true)
