@@ -4,12 +4,11 @@ require 'bundler/inline'
 
 gemfile do
   source 'https://rubygems.org'
-  gem 'pg', github: 'ged/ruby-pg'
   gem 'mini_sql', path: '../'
+  gem 'pg'
   gem 'activerecord'
   gem 'activemodel'
   gem 'benchmark-ips'
-  gem 'pry'
 end
 
 require 'active_record'

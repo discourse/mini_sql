@@ -18,7 +18,7 @@ class GenerateData
       user: 'postgres',
       host: 'localhost'
     }
-    
+
     db_conn = conn_settings.merge(database: "test_db", adapter: "postgresql")
 
     pg = PG::Connection.new(conn_settings)

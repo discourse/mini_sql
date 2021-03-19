@@ -4,12 +4,11 @@ require 'bundler/inline'
 
 gemfile do
   source 'https://rubygems.org'
-  gem 'pg', github: 'ged/ruby-pg'
   gem 'mini_sql', path: '../'
+  gem 'pg'
   gem 'activerecord'
   gem 'activemodel'
   gem 'benchmark-ips'
-  gem 'pry'
 end
 
 require 'active_record'
@@ -44,6 +43,17 @@ def ar_prepared(user_id)
     .load
 end
 
+def ar_prepared_optimized(user_id)
+  @rel ||= Topic
+    .select(User.arel_table[:first_name] , Topic.arel_table[:id].count)
+    .joins(:user, :category)
+    .group(User.arel_table[:id])
+
+  @rel
+    .where(user_id: user_id)
+    .load
+end
+
 def ar_unprepared(user_id)
   Topic
     .select('users.first_name, count(distinct topics.id) topics_count')
@@ -72,6 +82,14 @@ Benchmark.ips do |x|
       n -= 1
     end
   end
+
+  x.report("ar_prepared_optimized") do |n|
+    while n > 0
+      ar_prepared_optimized(rand(100))
+      n -= 1
+    end
+  end
+
   x.report("ar_unprepared") do |n|
     while n > 0
       ar_unprepared(rand(100))
