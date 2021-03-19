@@ -34,6 +34,23 @@ def mini_sql(is_prepared, user_id)
     .query
 end
 
+def mini_sql_optim(is_prepared, user_id)
+  @builder ||=
+    MINI_SQL
+      .build(<<~SQL)
+        /*select*/ from topics /*join*/ /*where*/ /*group_by*/
+      SQL
+      .select('users.first_name, count(distinct topics.id) topics_count')
+      .join('users on user_id = users.id')
+      .join('categories on category_id = categories.id')
+      .where('users.id = :user_id')
+      .group_by('users.id')
+
+  @builder
+    .prepared(is_prepared)
+    .query(user_id: user_id)
+end
+
 def ar_prepared(user_id)
   Topic
     .select(User.arel_table[:first_name] , Topic.arel_table[:id].count)
@@ -43,7 +60,7 @@ def ar_prepared(user_id)
     .load
 end
 
-def ar_prepared_optimized(user_id)
+def ar_prepared_optim(user_id)
   @rel ||= Topic
     .select(User.arel_table[:first_name] , Topic.arel_table[:id].count)
     .joins(:user, :category)
@@ -76,6 +93,20 @@ Benchmark.ips do |x|
       n -= 1
     end
   end
+
+  x.report("mini_sql_prepared_optim") do |n|
+    while n > 0
+      mini_sql_optim(true, rand(100))
+      n -= 1
+    end
+  end
+  x.report("mini_sql_optim") do |n|
+    while n > 0
+      mini_sql_optim(false, rand(100))
+      n -= 1
+    end
+  end
+
   x.report("ar_prepared") do |n|
     while n > 0
       ar_prepared(rand(100))
@@ -83,9 +114,9 @@ Benchmark.ips do |x|
     end
   end
 
-  x.report("ar_prepared_optimized") do |n|
+  x.report("ar_prepared_optim") do |n|
     while n > 0
-      ar_prepared_optimized(rand(100))
+      ar_prepared_optim(rand(100))
       n -= 1
     end
   end
