@@ -228,6 +228,9 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
   docker stop mini-sql-postgres mini-sql-mysql
 ```
 
+Sqlite tests rely on the SQLITE_STMT view existing. This is enabled by default on most systems, however some may
+opt for a leaner install. See: https://bugs.archlinux.org/task/70072. You may have to recompile sqlite on such systems.
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/discourse/mini_sql. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
