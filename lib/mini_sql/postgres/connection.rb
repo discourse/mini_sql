@@ -40,10 +40,16 @@ module MiniSql
         @deserializer_cache = (args && args[:deserializer_cache]) || self.class.default_deserializer_cache
         @param_encoder = (args && args[:param_encoder]) || InlineParamEncoder.new(self)
         @type_map = args && args[:type_map]
+
+        @prepared = PreparedConnection.new(self, @deserializer_cache)
       end
 
       def type_map
         @type_map ||= self.class.type_map(raw_connection)
+      end
+
+      def prepared(condition = true)
+        condition ? @prepared : self
       end
 
       # Returns a flat array containing all results.

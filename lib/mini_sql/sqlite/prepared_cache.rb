@@ -1,0 +1,21 @@
+# frozen_string_literal: true
+
+require "mini_sql/abstract/prepared_cache"
+
+module MiniSql
+  module Sqlite
+    class PreparedCache < MiniSql::Abstract::PreparedCache
+
+      private
+
+      def alloc(sql)
+        @connection.prepare(sql)
+      end
+
+      def dealloc(statement)
+        statement.close unless statement.closed?
+      end
+
+    end
+  end
+end

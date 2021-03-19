@@ -1,9 +1,12 @@
 # frozen_string_literal: true
 
 class GenerateData
-  class Topic < ActiveRecord::Base; end
-  class User < ActiveRecord::Base; end
-  class Category < ActiveRecord::Base; end
+  class ::Topic < ActiveRecord::Base;
+    belongs_to :user
+    belongs_to :category
+  end
+  class ::User < ActiveRecord::Base; end
+  class ::Category < ActiveRecord::Base; end
 
   def initialize(count_records:)
     @count_records = count_records
