@@ -1,11 +1,57 @@
 # frozen_string_literal: true
 
 module MiniSql::BuilderTests
+  class ValidatingParamEncoder
+    def initialize(old_encoder)
+      @old_encoder = old_encoder
+    end
+
+    def encode(sql, *params)
+      params[0].each do |(k, v)|
+        if !(Symbol === k)
+          raise "Attempting to use a String instead of Symbol as a key"
+        end
+
+        if !k.to_s.match?(/^[a-z]/i)
+          raise "Incompatible key used"
+        end
+      end
+      @old_encoder.encode(sql, *params)
+    end
+  end
+
   def test_where
     builder = @connection.build("select 1 as one /*where*/")
     builder.where("1 = :zero")
     l = builder.query(zero: 0).length
     assert_equal(0, l)
+  end
+
+  def test_param_encoder_compat
+    ignore_warnings do
+      class << @connection
+        alias :old_param_encoder :param_encoder
+        def param_encoder
+          MiniSql::BuilderTests::ValidatingParamEncoder.new(old_param_encoder)
+        end
+      end
+    end
+
+    builder = @connection.build("select 1 as one /*where*/ /*offset*/ /*limit*/")
+    builder.where("1 = ?", 0)
+    builder.where("2 = :not_two", not_two: 1)
+    builder.offset(2)
+    builder.limit(2)
+
+    # all params replaced
+    refute_match(/:/, builder.to_sql)
+
+  ensure
+    ignore_warnings do
+      class << @connection
+        alias :param_encoder :old_param_encoder
+      end
+    end
   end
 
   def test_append_params

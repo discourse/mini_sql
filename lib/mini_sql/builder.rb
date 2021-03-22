@@ -17,9 +17,11 @@ class MiniSql::Builder
         @args.merge!(args[0])
       else # convert simple params to hash
         args.each do |v|
-          param = "_m_#{@count_variables += 1}"
+          # for compatability with AR param encoded we keep a non _
+          # prefix (must be [a-z])
+          param = "mq_auto_#{@count_variables += 1}"
           sql_part = sql_part.sub('?', ":#{param}")
-          @args[param] = v
+          @args[param.to_sym] = v
         end
       end
 
@@ -31,7 +33,7 @@ class MiniSql::Builder
 
   [:limit, :offset].each do |k|
     define_method k do |value|
-      @args["_m_#{k}"] = value
+      @args["mq_auto_#{k}".to_sym] = value
       @sections[k] = true
       self
     end
@@ -82,9 +84,9 @@ class MiniSql::Builder
       when :left_join
         joined = v.map { |item| (+"LEFT JOIN ") << item }.join("\n")
       when :limit
-        joined = (+"LIMIT :_m_limit")
+        joined = (+"LIMIT :mq_auto_limit")
       when :offset
-        joined = (+"OFFSET :_m_offset")
+        joined = (+"OFFSET :mq_auto_offset")
       when :order_by
         joined = (+"ORDER BY ") << v.join(" , ")
       when :group_by

@@ -57,3 +57,11 @@ require "time"
 require_relative "mini_sql/connection_tests"
 require_relative "mini_sql/builder_tests"
 require_relative "mini_sql/prepared_connection_tests"
+
+# can be more tidy and strategic, but will do for small blocks of code
+def ignore_warnings
+  old_stderr = $stderr
+  $stderr = StringIO.new
+ensure
+  $stderr = old_stderr
+end

@@ -3,7 +3,7 @@
 module MiniSql
   module Postgres
     class Connection < MiniSql::Connection
-      attr_reader :raw_connection, :type_map, :param_encoder
+      attr_reader :raw_connection, :param_encoder
 
       def self.default_deserializer_cache
         @deserializer_cache ||= DeserializerCache.new
