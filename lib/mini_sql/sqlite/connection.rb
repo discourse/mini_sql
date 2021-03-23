@@ -13,7 +13,7 @@ module MiniSql
 
       def prepared(condition = true)
         if condition
-          @prepared ||= PreparedConnection.new(self, @deserializer_cache)
+          @prepared ||= PreparedConnection.new(self)
         else
           self
         end

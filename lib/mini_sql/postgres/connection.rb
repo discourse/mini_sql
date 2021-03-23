@@ -3,7 +3,7 @@
 module MiniSql
   module Postgres
     class Connection < MiniSql::Connection
-      attr_reader :raw_connection, :param_encoder
+      attr_reader :raw_connection, :param_encoder, :deserializer_cache
 
       def self.default_deserializer_cache
         @deserializer_cache ||= DeserializerCache.new
@@ -48,7 +48,7 @@ module MiniSql
 
       def prepared(condition = true)
         if condition
-          @prepared ||= PreparedConnection.new(self, @deserializer_cache)
+          @prepared ||= PreparedConnection.new(self)
         else
           self
         end
@@ -98,7 +98,7 @@ module MiniSql
       def query(sql, *params)
         result = run(sql, params)
         result.type_map = type_map
-        @deserializer_cache.materialize(result)
+        deserializer_cache.materialize(result)
       ensure
         result.clear if result
       end
@@ -121,7 +121,7 @@ module MiniSql
           if result.ntuples == 0
             # skip, this happens at the end when we get totals
           else
-            materializer ||= @deserializer_cache.materializer(result)
+            materializer ||= deserializer_cache.materializer(result)
             result.type_map = type_map
             i = 0
             # technically we should only get 1 row here
@@ -172,7 +172,7 @@ module MiniSql
       def query_decorator(decorator, sql, *params)
         result = run(sql, params)
         result.type_map = type_map
-        @deserializer_cache.materialize(result, decorator)
+        deserializer_cache.materialize(result, decorator)
       ensure
         result.clear if result
       end

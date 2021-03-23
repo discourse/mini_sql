@@ -13,7 +13,7 @@ module MiniSql
 
       def prepared(condition = true)
         if condition
-          @prepared ||= PreparedConnection.new(self, @deserializer_cache)
+          @prepared ||= PreparedConnection.new(self)
         else
           self
         end
@@ -39,12 +39,12 @@ module MiniSql
 
       def query(sql, *params)
         result = run(sql, :array, params)
-        @deserializer_cache.materialize(result)
+        deserializer_cache.materialize(result)
       end
 
       def query_decorator(decorator, sql, *params)
         result = run(sql, :array, params)
-        @deserializer_cache.materialize(result, decorator)
+        deserializer_cache.materialize(result, decorator)
       end
 
       def escape_string(str)

@@ -1,3 +1,7 @@
+2021-03-22 - 1.1.3
+
+- DEV: reduce coupling of internal interfaces and allow or cleaner override of prepared connections
+
 2021-03-22 - 1.1.2
 
 - FEATURE: improve compatability with clients overriding raw_connection

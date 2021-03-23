@@ -6,10 +6,9 @@ module MiniSql
 
       attr_reader :unprepared
 
-      def initialize(unprepared_connection, deserializer_cache)
+      def initialize(unprepared_connection)
         @unprepared         = unprepared_connection
         @raw_connection     = unprepared_connection.raw_connection
-        @deserializer_cache = deserializer_cache
         @param_encoder      = unprepared_connection.param_encoder
 
         @prepared_cache     = PreparedCache.new(@raw_connection)
@@ -22,6 +21,10 @@ module MiniSql
 
       def prepared(condition = true)
         condition ? self : @unprepared
+      end
+
+      def deserializer_cache
+        @unprepared.deserializer_cache
       end
 
       private def run(sql, params)
