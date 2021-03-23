@@ -1,3 +1,7 @@
+2021-03-22 - 1.1.2
+
+- FEATURE: improve compatability with clients overriding raw_connection
+
 2021-03-22 - 1.1.1
 
 - FIX: compatability with ActiveRecord param encoder
