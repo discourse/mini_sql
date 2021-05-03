@@ -62,9 +62,6 @@ module MiniSql
       private
 
       def run(sql, *params)
-        puts '********************************************'
-        puts sql.inspect
-        puts '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^'
         if params && params.length > 0
           sql = param_encoder.encode(sql, *params)
         end
