@@ -2,6 +2,7 @@
 
 require 'test_helper'
 
+# docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=yourStrong(!)Password' -e 'MSSQL_PID=Express' -p 1433:1433 mcr.microsoft.com/mssql/server:2017-latest
 class MiniSql::SqlServer::TestConnection < MiniTest::Test
   def setup
     @connection = sqlserver_connection
@@ -9,11 +10,5 @@ class MiniSql::SqlServer::TestConnection < MiniTest::Test
 
   def new_connection(opts = {})
     sqlserver_connection(opts)
-  end
-
-  include MiniSql::ConnectionTests
-
-  def test_connection_to_dual
-    r = @connection.query("SELECT 1 FROM dual")
   end
 end

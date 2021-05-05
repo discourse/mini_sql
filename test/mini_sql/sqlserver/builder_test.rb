@@ -7,5 +7,4 @@ class MiniSql::SqlServer::TestBuilder < MiniTest::Test
     @connection = sqlserver_connection
   end
 
-  include MiniSql::BuilderTests
 end
