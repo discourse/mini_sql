@@ -2,9 +2,9 @@
 
 require 'test_helper'
 
-class MiniSql::Mssql::TestBuilder < MiniTest::Test
+class MiniSql::SqlServer::TestBuilder < MiniTest::Test
   def setup
-    @connection = mssql_connection
+    @connection = sqlserver_connection
   end
 
   include MiniSql::BuilderTests

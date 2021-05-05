@@ -51,8 +51,8 @@ module MiniSql
     end
 
     module SqlServer
-      autoload :Connection, "mini_sql/mssql/connection"
-      autoload :DeserializerCache, "mini_sql/mssql/deserializer_cache"
+      autoload :Connection, "mini_sql/sqlserver/connection"
+      autoload :DeserializerCache, "mini_sql/sqlserver/deserializer_cache"
     end
   end
 end
