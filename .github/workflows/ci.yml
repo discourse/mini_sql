@@ -14,6 +14,12 @@ env:
   MINI_SQL_MYSQL_HOST: 127.0.0.1
   MINI_SQL_MYSQL_PORT: 3306
   MINI_SQL_MYSQL_PASSWORD: mysql
+  # Use for the oracle instant-client and ruby-oci8 gem
+  ORACLE_HOME: "/usr/lib/oracle/19.11/client64"
+  OCI_LIB: "/usr/lib/oracle/19.11/client64/lib"
+  TNS_ADMIN: "/usr/lib/oracle/19.11/client64/network/admin"
+  LD_LIBRARY_PATH: "/usr/lib/oracle/19.11/client64/lib"
+  TZ: "America/Denver"
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -33,6 +39,20 @@ jobs:
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+      oracle:
+        image: wnameless/oracle-xe-11g-r2
+        env:
+          ORACLE_DISABLE_ASYNCH_IO: true
+          ORACLE_ALLOW_REMOTE: true
+        ports:
+          - 1521:1521
+      # sqlserver:
+      #   image: mcr.microsoft.com/mssql/server:2017-latest
+      #   env:
+      #     ACCEPT_EULA: Y
+      #     SA_PASSWORD: 'yourStrong(!)Password'
+      #     MSSQL_PID: Express
+      #   options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -Usa -P yourStrong(!)Password -Q select 1 || exit 1" --health-interval=10s --health-timeout=10s --health-retries=60
     strategy:
       matrix:
         ruby: ["2.7", "2.6", "2.5"]
@@ -52,6 +72,18 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.ruby }}-gems-${{ hashFiles('**/Gemfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.ruby }}-gems-
+      - name: Install Linux Oracle adapter dependencies
+        run: |
+          sudo apt-get install alien
+          wget -q https://download.oracle.com/otn_software/linux/instantclient/1911000/oracle-instantclient19.11-basic-19.11.0.0.0-1.x86_64.rpm
+          wget -q https://download.oracle.com/otn_software/linux/instantclient/1911000/oracle-instantclient19.11-sqlplus-19.11.0.0.0-1.x86_64.rpm
+          wget -q https://download.oracle.com/otn_software/linux/instantclient/1911000/oracle-instantclient19.11-devel-19.11.0.0.0-1.x86_64.rpm
+          sudo alien -i oracle-instantclient19.11-basic-19.11.0.0.0-1.x86_64.rpm
+          sudo alien -i oracle-instantclient19.11-sqlplus-19.11.0.0.0-1.x86_64.rpm
+          sudo alien -i oracle-instantclient19.11-devel-19.11.0.0.0-1.x86_64.rpm
+      - name: Install SQLserver/MsSQL adapter dependencies
+        run: |
+          sudo apt-get install unixodbc unixodbc-dev freetds-dev freetds-bin tdsodbc
       - name: Create Databases
         run: |
           createdb test_mini_sql
