@@ -62,7 +62,7 @@ else
   end
 
   def sqlserver_connection(options = {})
-    sqlserver_conn = TinyTds::Client.new(username: 'SA', password: 'yourStrong(!)Password ', host: 'sqlserver', database: 'MINI_SQL_TEST_DB')
+    sqlserver_conn = TinyTds::Client.new(username: 'SA', password: 'yourStrong(!)Password', host: '127.0.0.1', database: 'tempdb')
     MiniSql::Connection.get(sqlserver_conn, options)
   end
 end

@@ -13,7 +13,7 @@ module MiniSql
 
       def query_single(sql, *params)
         results = run(sql, *params)
-        results.each(as: :array, :first => true).first
+        results.each(as: :array, first: true).first
       end
 
       def query_hash(sql, *params)
@@ -32,7 +32,7 @@ module MiniSql
 
       def exec(sql, *params)
         result = run(sql, *params)
-        result.affected_rows
+        result.do
       end
 
       def query(sql, *params)
