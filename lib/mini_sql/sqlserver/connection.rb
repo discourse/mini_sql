@@ -36,8 +36,10 @@ module MiniSql
       end
 
       def query(sql, *params)
-        result = run(sql, *params)
-        @deserializer_cache.materialize(result)
+        results = run(sql, *params)
+        results.each do |set|
+          @deserializer_cache.materialize(results)
+        end
       end
 
       def query_decorator(decorator, sql, *params)

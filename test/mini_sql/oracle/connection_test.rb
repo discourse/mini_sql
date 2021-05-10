@@ -57,7 +57,7 @@ class MiniSql::Oracle::TestConnection < MiniTest::Test
   def test_exec_returns_row_count
     r = @connection.query_array('(select 77 from dual) union (select 22 from dual)')
     assert_equal(2, r.length)
-    assert_equal(22, r.first[0].to_i  )
+    assert_equal(22, r.first[0].to_i)
   end
 
 

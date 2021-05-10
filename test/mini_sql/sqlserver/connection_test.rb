@@ -41,10 +41,15 @@ class MiniSql::SqlServer::TestConnection < MiniTest::Test
     rows = @connection.exec("UPDATE test_table SET display_name = 'foobar' WHERE id = 1")
     assert_equal(1, rows)
 
-    # count = @connection.query("SELECT count(*) FROM test_table").first
-    # assert_equal(3, count[0])
+    result = @connection.query("SELECT count(*) AS count FROM test_table").first
+    assert_equal(3, result['count'])
 
-    
+    results = @connection.query_array("SELECT TOP 2 id FROM test_table ORDER BY id")
+    assert_equal(2, results.count)
+
+    @connection.exec('DELETE FROM test_table WHERE id = 3')
+    result = @connection.query('SELECT count(*) AS count FROM test_table').first
+    assert_equal(2, result['count'])
   end
 
   def test_exec_returns_row_count
