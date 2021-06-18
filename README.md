@@ -79,6 +79,28 @@ end
 
 The builder allows for `order_by`, `where`, `select`, `set`, `limit`, `join`, `left_join` and `offset`.
 
+## SQL concatenations
+use `MiniSql.sql` if you want injecting row sql from param
+
+```ruby
+user_builder = conn
+  .build("date_trunc('day', created_at) day, count(*) from user_topics /*where*/")
+  .where('type = ?', input_type)
+  .group_by("date_trunc('day', created_at)")
+
+guest_builder = conn
+  .build("select date_trunc('day', created_at) day, count(*) from guest_topics /*where*/")
+  .where('state = ?', input_state)
+  .group_by("date_trunc('day', created_at)")
+
+conn.query(<<~SQL, MiniSql.sql(user_builder.to_sql), MiniSql.sql(guest_builder.to_sql))
+   with as (?) u, (?) as g
+   select COALESCE(g.day, u.day), g.count, u.count
+   from u
+   full join g on g.day = u.day
+SQL
+```
+
 ## Is it fast?
 Yes, it is very fast. See benchmarks in [the bench directory](https://github.com/discourse/mini_sql/tree/master/bench).
 
