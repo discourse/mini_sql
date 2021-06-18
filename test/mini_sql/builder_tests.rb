@@ -194,4 +194,26 @@ module MiniSql::BuilderTests
 
     assert_equal(builder.to_sql(id: 10, is_sale: true), sql)
   end
+
+  def test_exception_when_section_not_defined
+    builder = @connection.build("SELECT * FROM products /*where2*/").where('id = ?', 10)
+
+    err = assert_raises(RuntimeError) { builder.to_sql }
+    assert_match 'Not found section /*where*/', err.message
+  end
+
+  def test_inject_sql
+    builder = @connection.build("SELECT * FROM products /*product_where*/")
+    builder.inject_sql(product_where: 'WHERE id = 10')
+
+    assert_equal(builder.to_sql, 'SELECT * FROM products WHERE id = 10')
+  end
+
+  def test_inject_sql_for_builder
+    user_builder = @connection.build("SELECT * FROM users /*where*/").where('id = ?', 10)
+    builder = @connection.build("SELECT * FROM (/*user_table*/) AS t")
+    builder.inject_sql(user_table: user_builder)
+
+    assert_equal(builder.to_sql, 'SELECT * FROM (SELECT * FROM users WHERE (id = 10)) AS t')
+  end
 end

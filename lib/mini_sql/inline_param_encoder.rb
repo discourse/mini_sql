@@ -59,7 +59,6 @@ module MiniSql
       when nil        then "NULL"
       when []         then "NULL"
       when Array      then value.map { |v| quote_val(v) }.join(', ')
-      when ::MiniSql::SqlLiteral then value.to_str
       else raise TypeError, "can't quote #{value.class.name}"
       end
     end

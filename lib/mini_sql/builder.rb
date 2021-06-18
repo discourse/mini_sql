@@ -11,6 +11,13 @@ class MiniSql::Builder
     @is_prepared = false
   end
 
+  def inject_sql(injects)
+    injects.each do |name, part_sql|
+      @sections[name] = part_sql.is_a?(::MiniSql::Builder) ? part_sql.to_sql : part_sql
+    end
+    self
+  end
+
   [:set, :where2, :where, :order_by, :left_join, :join, :select, :group_by].each do |k|
     define_method k do |sql_part, *args|
       if Hash === args[0]
@@ -93,9 +100,13 @@ class MiniSql::Builder
         joined = (+"GROUP BY ") << v.join(" , ")
       when :set
         joined = (+"SET ") << v.join(" , ")
+      else # for inject_sql
+        joined = v
       end
 
-      sql.sub!("/*#{k}*/", joined)
+      unless sql.sub!("/*#{k}*/", joined)
+        raise "Not found section /*#{k}*/"
+      end
     end
 
     sql

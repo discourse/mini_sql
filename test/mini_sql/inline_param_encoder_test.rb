@@ -52,11 +52,5 @@ module MiniSql
       assert_equal("select '2010-10-01'", result)
     end
 
-    def test_sql_literal
-      user_sql = 'select id from user'
-      result = @encoder.encode("with t AS (?) select * from t where id = ?", MiniSql.sql(user_sql), 10)
-      assert_equal("with t AS (select id from user) select * from t where id = 10", result)
-    end
-
   end
 end

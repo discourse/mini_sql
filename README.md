@@ -79,8 +79,8 @@ end
 
 The builder allows for `order_by`, `where`, `select`, `set`, `limit`, `join`, `left_join` and `offset`.
 
-## SQL concatenations
-use `MiniSql.sql` if you want injecting row sql from param
+## SQL injection
+Use `inject_sql` for injected custom sql into Builder
 
 ```ruby
 user_builder = conn
@@ -93,12 +93,16 @@ guest_builder = conn
   .where('state = ?', input_state)
   .group_by("date_trunc('day', created_at)")
 
-conn.query(<<~SQL, MiniSql.sql(user_builder.to_sql), MiniSql.sql(guest_builder.to_sql))
-   with as (?) u, (?) as g
-   select COALESCE(g.day, u.day), g.count, u.count
-   from u
-   full join g on g.day = u.day
-SQL
+conn
+  .build(<<~SQL)
+     with as (/*user*/) u, (/*guest*/) as g
+     select COALESCE(g.day, u.day), g.count, u.count
+     from u
+     /*custom_join*/
+  SQL
+  .inject_sql(user: user_builder, guest: guest_builder)
+  .inject_sql(custom_join: "#{input_cond ? 'FULL' : 'LEFT'} JOIN g on g.day = u.day")
+  .query
 ```
 
 ## Is it fast?
