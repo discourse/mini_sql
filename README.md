@@ -77,14 +77,27 @@ builder.query.each do |t|
 end
 ```
 
-The builder allows for `order_by`, `where`, `select`, `set`, `limit`, `join`, `left_join` and `offset`.
+The builder predefined next _SQL Literals_
 
-## SQL injection
-Use `inject_sql` for injected custom sql into Builder
+| Method | SQL Literal |
+| ------ | ----------- |
+|`select`    |`/*select*/`|
+|`where`     |`/*where*/`|
+|`where2`    |`/*where2*/`|
+|`join`      |`/*join*/`|
+|`left_join` |`/*left_join*/`|
+|`group_by`  |`/*group_by*/`|
+|`order_by`  |`/*order_by*/`|
+|`limit`     |`/*limit*/`|
+|`offset`    |`/*offset*/`|
+|`set`       |`/*set*/`|
+
+### Custom SQL Literals
+Use `sql_literal` for injecting custom sql into Builder
 
 ```ruby
 user_builder = conn
-  .build("date_trunc('day', created_at) day, count(*) from user_topics /*where*/")
+  .build("select date_trunc('day', created_at) day, count(*) from user_topics /*where*/")
   .where('type = ?', input_type)
   .group_by("date_trunc('day', created_at)")
 
@@ -100,8 +113,8 @@ conn
      from u
      /*custom_join*/
   SQL
-  .inject_sql(user: user_builder, guest: guest_builder)
-  .inject_sql(custom_join: "#{input_cond ? 'FULL' : 'LEFT'} JOIN g on g.day = u.day")
+  .sql_literal(user: user_builder, guest: guest_builder) # builder
+  .sql_literal(custom_join: "#{input_cond ? 'FULL' : 'LEFT'} JOIN g on g.day = u.day") # or string
   .query
 ```
 

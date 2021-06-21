@@ -202,17 +202,17 @@ module MiniSql::BuilderTests
     assert_match 'Not found section /*where*/', err.message
   end
 
-  def test_inject_sql
+  def test_sql_literal
     builder = @connection.build("SELECT * FROM products /*product_where*/")
-    builder.inject_sql(product_where: 'WHERE id = 10')
+    builder.sql_literal(product_where: 'WHERE id = 10')
 
     assert_equal(builder.to_sql, 'SELECT * FROM products WHERE id = 10')
   end
 
-  def test_inject_sql_for_builder
+  def test_sql_literal_for_builder
     user_builder = @connection.build("SELECT * FROM users /*where*/").where('id = ?', 10)
     builder = @connection.build("SELECT * FROM (/*user_table*/) AS t")
-    builder.inject_sql(user_table: user_builder)
+    builder.sql_literal(user_table: user_builder)
 
     assert_equal(builder.to_sql, 'SELECT * FROM (SELECT * FROM users WHERE (id = 10)) AS t')
   end

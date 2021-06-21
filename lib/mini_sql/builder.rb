@@ -11,8 +11,8 @@ class MiniSql::Builder
     @is_prepared = false
   end
 
-  def inject_sql(injects)
-    injects.each do |name, part_sql|
+  def sql_literal(literals)
+    literals.each do |name, part_sql|
       @sections[name] = part_sql.is_a?(::MiniSql::Builder) ? part_sql.to_sql : part_sql
     end
     self
@@ -100,7 +100,7 @@ class MiniSql::Builder
         joined = (+"GROUP BY ") << v.join(" , ")
       when :set
         joined = (+"SET ") << v.join(" , ")
-      else # for inject_sql
+      else # for sql_literal
         joined = v
       end
 
