@@ -199,7 +199,7 @@ module MiniSql::BuilderTests
     builder = @connection.build("SELECT * FROM products /*where2*/").where('id = ?', 10)
 
     err = assert_raises(RuntimeError) { builder.to_sql }
-    assert_match 'Not found section /*where*/', err.message
+    assert_match 'The section for the /*where*/ clause was not found!', err.message
   end
 
   def test_sql_literal
@@ -215,5 +215,12 @@ module MiniSql::BuilderTests
     builder.sql_literal(user_table: user_builder)
 
     assert_equal(builder.to_sql, 'SELECT * FROM (SELECT * FROM users WHERE (id = 10)) AS t')
+  end
+
+  def test_sql_literal_predefined
+    builder = @connection.build("select 1 /*where*/")
+
+    err = assert_raises(RuntimeError) { builder.sql_literal(where: "where 1 = 1") }
+    assert_match '/*where*/ is predefined, use method `.where` instead `sql_literal`', err.message
   end
 end

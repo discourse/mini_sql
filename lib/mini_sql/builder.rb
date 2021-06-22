@@ -11,39 +11,46 @@ class MiniSql::Builder
     @is_prepared = false
   end
 
+  literals1 =
+    [:set, :where2, :where, :order_by, :left_join, :join, :select, :group_by].each do |k|
+      define_method k do |sql_part, *args|
+        if Hash === args[0]
+          @args.merge!(args[0])
+        else # convert simple params to hash
+          args.each do |v|
+            # for compatability with AR param encoded we keep a non _
+            # prefix (must be [a-z])
+            param = "mq_auto_#{@count_variables += 1}"
+            sql_part = sql_part.sub('?', ":#{param}")
+            @args[param.to_sym] = v
+          end
+        end
+
+        @sections[k] ||= []
+        @sections[k] << sql_part
+        self
+      end
+    end
+
+  literals2 =
+    [:limit, :offset].each do |k|
+      define_method k do |value|
+        @args["mq_auto_#{k}".to_sym] = value
+        @sections[k] = true
+        self
+      end
+    end
+
+  PREDEFINED_SQL_LITERALS = (literals1 | literals2).to_set
+
   def sql_literal(literals)
     literals.each do |name, part_sql|
+      if PREDEFINED_SQL_LITERALS.include?(name)
+        raise "/*#{name}*/ is predefined, use method `.#{name}` instead `sql_literal`"
+      end
       @sections[name] = part_sql.is_a?(::MiniSql::Builder) ? part_sql.to_sql : part_sql
     end
     self
-  end
-
-  [:set, :where2, :where, :order_by, :left_join, :join, :select, :group_by].each do |k|
-    define_method k do |sql_part, *args|
-      if Hash === args[0]
-        @args.merge!(args[0])
-      else # convert simple params to hash
-        args.each do |v|
-          # for compatability with AR param encoded we keep a non _
-          # prefix (must be [a-z])
-          param = "mq_auto_#{@count_variables += 1}"
-          sql_part = sql_part.sub('?', ":#{param}")
-          @args[param.to_sym] = v
-        end
-      end
-
-      @sections[k] ||= []
-      @sections[k] << sql_part
-      self
-    end
-  end
-
-  [:limit, :offset].each do |k|
-    define_method k do |value|
-      @args["mq_auto_#{k}".to_sym] = value
-      @sections[k] = true
-      self
-    end
   end
 
   [:query, :query_single, :query_hash, :query_array, :exec].each do |m|
@@ -105,7 +112,7 @@ class MiniSql::Builder
       end
 
       unless sql.sub!("/*#{k}*/", joined)
-        raise "Not found section /*#{k}*/"
+        raise "The section for the /*#{k}*/ clause was not found!"
       end
     end
 
