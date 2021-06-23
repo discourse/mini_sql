@@ -194,4 +194,33 @@ module MiniSql::BuilderTests
 
     assert_equal(builder.to_sql(id: 10, is_sale: true), sql)
   end
+
+  def test_exception_when_section_not_defined
+    builder = @connection.build("SELECT * FROM products /*where2*/").where('id = ?', 10)
+
+    err = assert_raises(RuntimeError) { builder.to_sql }
+    assert_match 'The section for the /*where*/ clause was not found!', err.message
+  end
+
+  def test_sql_literal
+    builder = @connection.build("SELECT * FROM products /*product_where*/")
+    builder.sql_literal(product_where: 'WHERE id = 10')
+
+    assert_equal(builder.to_sql, 'SELECT * FROM products WHERE id = 10')
+  end
+
+  def test_sql_literal_for_builder
+    user_builder = @connection.build("SELECT * FROM users /*where*/").where('id = ?', 10)
+    builder = @connection.build("SELECT * FROM (/*user_table*/) AS t")
+    builder.sql_literal(user_table: user_builder)
+
+    assert_equal(builder.to_sql, 'SELECT * FROM (SELECT * FROM users WHERE (id = 10)) AS t')
+  end
+
+  def test_sql_literal_predefined
+    builder = @connection.build("select 1 /*where*/")
+
+    err = assert_raises(RuntimeError) { builder.sql_literal(where: "where 1 = 1") }
+    assert_match '/*where*/ is predefined, use method `.where` instead `sql_literal`', err.message
+  end
 end

@@ -51,5 +51,6 @@ module MiniSql
       result = @encoder.encode("select :t", t: t)
       assert_equal("select '2010-10-01'", result)
     end
+
   end
 end

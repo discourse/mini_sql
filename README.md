@@ -77,7 +77,46 @@ builder.query.each do |t|
 end
 ```
 
-The builder allows for `order_by`, `where`, `select`, `set`, `limit`, `join`, `left_join` and `offset`.
+The builder predefined next _SQL Literals_
+
+| Method | SQL Literal |
+| ------ | ----------- |
+|`select`    |`/*select*/`|
+|`where`     |`/*where*/`|
+|`where2`    |`/*where2*/`|
+|`join`      |`/*join*/`|
+|`left_join` |`/*left_join*/`|
+|`group_by`  |`/*group_by*/`|
+|`order_by`  |`/*order_by*/`|
+|`limit`     |`/*limit*/`|
+|`offset`    |`/*offset*/`|
+|`set`       |`/*set*/`|
+
+### Custom SQL Literals
+Use `sql_literal` for injecting custom sql into Builder
+
+```ruby
+user_builder = conn
+  .build("select date_trunc('day', created_at) day, count(*) from user_topics /*where*/")
+  .where('type = ?', input_type)
+  .group_by("date_trunc('day', created_at)")
+
+guest_builder = conn
+  .build("select date_trunc('day', created_at) day, count(*) from guest_topics /*where*/")
+  .where('state = ?', input_state)
+  .group_by("date_trunc('day', created_at)")
+
+conn
+  .build(<<~SQL)
+     with as (/*user*/) u, (/*guest*/) as g
+     select COALESCE(g.day, u.day), g.count, u.count
+     from u
+     /*custom_join*/
+  SQL
+  .sql_literal(user: user_builder, guest: guest_builder) # builder
+  .sql_literal(custom_join: "#{input_cond ? 'FULL' : 'LEFT'} JOIN g on g.day = u.day") # or string
+  .query
+```
 
 ## Is it fast?
 Yes, it is very fast. See benchmarks in [the bench directory](https://github.com/discourse/mini_sql/tree/master/bench).
