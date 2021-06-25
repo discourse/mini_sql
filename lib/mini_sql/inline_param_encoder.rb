@@ -20,7 +20,11 @@ module MiniSql
     def encode_hash(sql, hash)
       sql = sql.dup
 
-      hash.each do |k, v|
+      # longest key first for gsub to work
+      # in an expected way
+      hash.sort do |(k, _), (k1, _)|
+        k1.to_s.length <=> k.to_s.length
+      end.each do |k, v|
         sql.gsub!(":#{k}") do
           # ignore ::int and stuff like that
           # $` is previous to match

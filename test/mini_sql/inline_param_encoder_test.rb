@@ -10,6 +10,11 @@ module MiniSql
       @encoder = InlineParamEncoder.new(@connection)
     end
 
+    def test_duplicate_arg_encoding
+      result = @encoder.encode("select :arg2, :arg20", arg2: 1, arg20: 2)
+      assert_equal("select 1, 2", result)
+    end
+
     def test_basic_encoding
       result = @encoder.encode("select :int::int", int: 22)
       assert_equal("select 22::int", result)
