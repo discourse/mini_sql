@@ -21,6 +21,8 @@ else
   require "pg"
   require "sqlite3"
   require "mysql2"
+  require 'ruby-oci8'
+  require 'tiny_tds'
 
   def mysql_connection(options = {})
     args = { database: 'test_mini_sql', username: 'root', password: '' }
@@ -49,6 +51,19 @@ else
   def sqlite3_connection(options = {})
     sqlite_conn = SQLite3::Database.new(':memory:')
     MiniSql::Connection.get(sqlite_conn, options)
+  end
+
+  def oracle_connection(options = {})
+    # Required config for the Oracle containers
+    config = { username: 'system', password: 'oracle', host: '127.0.0.1', port: '1521', database: 'XE' }
+    connection_str = "//#{config[:host]}:#{config[:port]}/#{config[:database]}"
+    pool = OCI8::ConnectionPool.new(1, 5, 2, config[:username], config[:password], connection_str)
+    MiniSql::Connection.get(OCI8.new(config[:username], config[:password], pool))
+  end
+
+  def sqlserver_connection(options = {})
+    sqlserver_conn = TinyTds::Client.new(username: 'SA', password: 'yourStrong(!)Password', host: '127.0.0.1', database: 'tempdb')
+    MiniSql::Connection.get(sqlserver_conn, options)
   end
 end
 

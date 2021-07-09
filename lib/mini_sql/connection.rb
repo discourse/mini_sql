@@ -12,6 +12,10 @@ module MiniSql
         Sqlite::Connection.new(raw_connection, options)
       elsif (defined? ::Mysql2::Client) && (Mysql2::Client === raw_connection)
         Mysql::Connection.new(raw_connection, options)
+      elsif (defined? ::OCI8) && (OCI8 === raw_connection || (defined? ::OCIEnhancedAutoRecover) && OCI8EnhancedAutoRecover === raw_connection)
+        Oracle::Connection.new(raw_connection, options)
+      elsif (defined? ::TinyTds)
+        SqlServer::Connection.new(raw_connection, options)
       else
         raise ArgumentError, 'unknown connection type!'
       end

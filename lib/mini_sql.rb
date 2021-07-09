@@ -43,5 +43,16 @@ module MiniSql
       autoload :PreparedBinds,      "mini_sql/mysql/prepared_binds"
       autoload :PreparedConnection, "mini_sql/mysql/prepared_connection"
     end
+
+    module Oracle
+      autoload :Connection, "mini_sql/oracle/connection"
+      autoload :DeserializerCache, "mini_sql/oracle/deserializer_cache"
+      autoload :PreparedConnection, "mini_sql/oracle/prepared_connection"
+    end
+
+    module SqlServer
+      autoload :Connection, "mini_sql/sqlserver/connection"
+      autoload :DeserializerCache, "mini_sql/sqlserver/deserializer_cache"
+    end
   end
 end
