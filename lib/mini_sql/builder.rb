@@ -128,7 +128,7 @@ class MiniSql::Builder
           v
         end
 
-      unless sql.sub!("/*#{k}*/", joined)
+      unless sql.gsub!("/*#{k}*/", joined)
         raise "The section for the /*#{k}*/ clause was not found!"
       end
     end
