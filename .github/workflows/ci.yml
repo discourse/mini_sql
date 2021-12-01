@@ -35,12 +35,14 @@ jobs:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
     strategy:
+      fail-fast: false
       matrix:
         ruby: ["3.0", "2.7", "2.6"]
         experimental: [false]
         include:
           - ruby: ruby-head
             experimental: true
+    continue-on-error: ${{matrix.experimental}}
     steps:
       - uses: actions/checkout@v2
       - uses: ruby/setup-ruby@v1
