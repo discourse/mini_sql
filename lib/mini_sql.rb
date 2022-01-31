@@ -3,6 +3,9 @@
 # we need this for a coder
 require "bigdecimal"
 
+# used for builder
+require "set"
+
 require_relative "mini_sql/version"
 require_relative "mini_sql/connection"
 require_relative "mini_sql/deserializer_cache"

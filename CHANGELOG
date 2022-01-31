@@ -1,5 +1,6 @@
-Pending:
+2022-31-01 - 1.2.0
 
+- Ruby 2.6 is EOL support removed
 - FIX: when multiple params shared a prefix inline encoder may work in unexpected ways
 - FEATURE: add sql_literal for injecting sql in sql builder
 
