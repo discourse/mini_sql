@@ -42,7 +42,7 @@ else
         args[name] = val
       end
     end
-    pg_conn = PG.connect(args)
+    pg_conn = PG.connect(**args)
     MiniSql::Connection.get(pg_conn, options)
   end
 

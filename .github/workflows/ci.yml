@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: ["3.0", "2.7", "2.6"]
+        ruby: ["3.1", "3.0", "2.7"]
         experimental: [false]
         include:
           - ruby: ruby-head
