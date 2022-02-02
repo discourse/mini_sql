@@ -4,7 +4,6 @@ on:
   pull_request:
   push:
     branches:
-      - master
       - main
 
 env:
@@ -67,3 +66,18 @@ jobs:
         run: bundle exec rake test
       - name: Rubocop
         run: bundle exec rubocop
+
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Release Gem
+        uses: discourse/publish-rubygems-action@v2
+        env:
+          RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
+          GIT_EMAIL: team@discourse.org
+          GIT_NAME: discoursebot
