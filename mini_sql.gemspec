@@ -35,12 +35,12 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "bundler", "> 1.16"
   spec.add_development_dependency "rake", "> 10"
   spec.add_development_dependency "minitest", "~> 5.0"
-  spec.add_development_dependency "guard", "~> 2.14"
+  spec.add_development_dependency "guard", "~> 2.18"
   spec.add_development_dependency "guard-minitest", "~> 2.4"
   spec.add_development_dependency "activesupport", "~> 5.2"
-  spec.add_development_dependency 'rubocop', '~> 1.4.0'
-  spec.add_development_dependency 'rubocop-discourse', '~> 2.4.1'
-  spec.add_development_dependency 'm', '~> 1.5.1'
+  spec.add_development_dependency 'rubocop', '~> 1.25.0'
+  spec.add_development_dependency 'rubocop-discourse', '~> 2.5.0'
+  spec.add_development_dependency 'm', '~> 1.6.0'
 
   if RUBY_ENGINE == 'jruby'
     spec.add_development_dependency "activerecord-jdbcpostgresql-adapter", "~> 52.2"

@@ -3,6 +3,8 @@ inherit_gem:
 inherit_mode:
   merge:
     - Exclude
+Security/MarshalLoad:
+  Enabled: false
 AllCops:
   Exclude:
     - 'bench/**/*'
