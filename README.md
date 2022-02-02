@@ -241,6 +241,17 @@ builder.where("id IN (?)", ids)
 builder.prepared(ids.size == 1).query # most frequent query
 ```
 
+## Active Record Postgres
+
+When using alongside ActiveRecord, passing in the ActiveRecord connection rather than the raw Postgres connection will allow mini_sql to lock the connection, thereby preventing concurrent use in other threads.
+
+```ruby
+ar_conn = ActiveRecord::Base.connection
+conn = MiniSql::Connection.get(ar_conn)
+
+conn.query("select * from topics")
+```
+
 ## I want more features!
 
 MiniSql is designed to be very minimal. Even though the query builder and type materializer give you a lot of mileage, it is not intended to be a fully fledged ORM. If you are looking for an ORM I recommend investigating ActiveRecord or Sequel which provide significantly more features.
