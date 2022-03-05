@@ -61,4 +61,11 @@ class MiniSql::Postgres::TestPreparedConnection < MiniTest::Test
     assert_equal ps[0].statement, 'SELECT $1, $2, $3'
   end
 
+  def test_single_named_param
+    r = @prepared_connection.query_single("select :n, :n, :n", n: 'test')
+
+    assert_last_stmt "select $1, $1, $1"
+    assert_equal %w[test test test], r
+  end
+
 end
