@@ -79,18 +79,19 @@ end
 
 The builder predefined next _SQL Literals_
 
-| Method | SQL Literal |
-| ------ | ----------- |
-|`select`    |`/*select*/`|
-|`where`     |`/*where*/`|
-|`where2`    |`/*where2*/`|
-|`join`      |`/*join*/`|
-|`left_join` |`/*left_join*/`|
-|`group_by`  |`/*group_by*/`|
-|`order_by`  |`/*order_by*/`|
-|`limit`     |`/*limit*/`|
-|`offset`    |`/*offset*/`|
-|`set`       |`/*set*/`|
+| Method      | SQL Literal     |
+|-------------|-----------------|
+| `select`    | `/*select*/`    |
+| `where`     | `/*where*/`     |
+| `where2`    | `/*where2*/`    |
+| `where_or`  | `/*where_or*/`  |
+| `join`      | `/*join*/`      |
+| `left_join` | `/*left_join*/` |
+| `group_by`  | `/*group_by*/`  |
+| `order_by`  | `/*order_by*/`  |
+| `limit`     | `/*limit*/`     |
+| `offset`    | `/*offset*/`    |
+| `set`       | `/*set*/`       |
 
 ### Custom SQL Literals
 Use `sql_literal` for injecting custom sql into Builder

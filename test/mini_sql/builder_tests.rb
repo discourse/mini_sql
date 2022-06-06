@@ -161,6 +161,14 @@ module MiniSql::BuilderTests
     assert_equal(60, r.amount_price)
   end
 
+  def test_where_or
+    builder = @connection.build("SELECT 1 as one /*where_or*/")
+    builder.where_or("1 = ?", 2)
+    builder.where_or("1 = :one", one: 1)
+
+    assert_equal(builder.to_sql, "SELECT 1 as one WHERE ((1 = 2) OR (1 = 1))")
+  end
+
   def test_to_sql_without_params
     builder = @connection.build("SELECT price, quantity AS quantity FROM products /*where*/ /*limit*/ /*order_by*/")
     builder.where('id = :id', id: 10)
