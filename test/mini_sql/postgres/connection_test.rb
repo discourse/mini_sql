@@ -154,4 +154,14 @@ class MiniSql::Postgres::TestConnection < Minitest::Test
     assert_equal(row.two, 2)
     assert_equal(row.column2, 3)
   end
+
+  def test_encode_array
+    ints = [1, 2, 3]
+    strings = %w[a b c]
+    row = @connection.query("select ?::int[] ints, ?::text[] strings", @connection.array(ints), @connection.array(strings)).first
+
+    assert_equal(row.ints, ints)
+    assert_equal(row.strings, strings)
+  end
+
 end

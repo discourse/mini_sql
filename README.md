@@ -250,6 +250,9 @@ ids = rand(100) < 90 ? [1] : [1, 2]
 builder = conn.build("select * from table /*where*/")
 builder.where("id IN (?)", ids)
 builder.prepared(ids.size == 1).query # most frequent query
+
+# better way, more performance
+conn.prepared.query("select * from table where id = ANY (?)", conn.array([1, 2, 3, 4, 5]))
 ```
 
 ## Active Record Postgres

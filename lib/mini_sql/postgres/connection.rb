@@ -56,6 +56,11 @@ module MiniSql
         @type_map = args && args[:type_map]
       end
 
+      PG_ARRAY = PG::TextEncoder::Array.new
+      def array(value)
+        PG_ARRAY.encode(value)
+      end
+
       def type_map
         @type_map ||= self.class.type_map(raw_connection)
       end
