@@ -12,7 +12,7 @@ class MiniSql::Builder
   end
 
   literals1 =
-    [:set, :where2, :where, :where_or, :order_by, :left_join, :join, :select, :group_by].each do |k|
+    [:set, :where2, :where2_or, :where, :where_or, :order_by, :left_join, :join, :select, :group_by].each do |k|
       define_method k do |sql_part, *args|
         if Hash === args[0]
           @args.merge!(args[0])
