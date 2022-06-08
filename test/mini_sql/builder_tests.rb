@@ -162,11 +162,23 @@ module MiniSql::BuilderTests
   end
 
   def test_where_or
-    builder = @connection.build("SELECT 1 as one /*where_or*/")
-    builder.where_or("1 = ?", 2)
-    builder.where_or("1 = :one", one: 1)
+    builder = @connection.build("SELECT 1 as one /*where*/")
+    builder
+      .where_or("1 = ?", 2)
+      .where_or("1 = ?", 1)
 
     assert_equal(builder.to_sql, "SELECT 1 as one WHERE ((1 = 2) OR (1 = 1))")
+  end
+
+  def test_where_or_and
+    builder = @connection.build("SELECT 1 as one /*where*/")
+    builder
+      .where_or("1 = ?", 2)
+      .where_or("1 = ?", 1)
+      .where("3 = ?", 3)
+      .where("4 = ?", 4)
+
+    assert_equal(builder.to_sql, "SELECT 1 as one WHERE (3 = 3) AND (4 = 4) AND ((1 = 2) OR (1 = 1))")
   end
 
   def test_to_sql_without_params

@@ -83,35 +83,41 @@ class MiniSql::Builder
     end
   end
 
+  WHERE_SECTIONS = [%i[where where_or], %i[where2 where2_or]]
   private def parametrized_sql
     sql = @sql.dup
 
-    @sections.each do |k, v|
-      joined = nil
-      case k
-      when :select
-        joined = (+"SELECT ") << v.join(" , ")
-      when :where, :where2
-        joined = (+"WHERE ") << v.map { |c| (+"(") << c << ")" }.join(" AND ")
-      when :where_or
-        joined = (+"WHERE (") << v.map { |c| (+"(") << c << ")" }.join(" OR ") << ")"
-      when :join
-        joined = v.map { |item| (+"JOIN ") << item }.join("\n")
-      when :left_join
-        joined = v.map { |item| (+"LEFT JOIN ") << item }.join("\n")
-      when :limit
-        joined = (+"LIMIT :mq_auto_limit")
-      when :offset
-        joined = (+"OFFSET :mq_auto_offset")
-      when :order_by
-        joined = (+"ORDER BY ") << v.join(" , ")
-      when :group_by
-        joined = (+"GROUP BY ") << v.join(" , ")
-      when :set
-        joined = (+"SET ") << v.join(" , ")
-      else # for sql_literal
-        joined = v
+    WHERE_SECTIONS.each do |section_and, section_or|
+      if (or_values = @sections.delete(section_or))
+        @sections[section_and] ||= []
+        @sections[section_and] << or_values.map { |c| "(#{c})" }.join(" OR ")
       end
+    end
+
+    @sections.each do |k, v|
+      joined =
+        case k
+        when :select
+          "SELECT #{v.join(" , ")}"
+        when :where, :where2
+          "WHERE #{v.map { |c| "(#{c})" }.join(" AND ")}"
+        when :join
+          v.map { |item| "JOIN #{item}" }.join("\n")
+        when :left_join
+          v.map { |item| "LEFT JOIN #{item}" }.join("\n")
+        when :limit
+          "LIMIT :mq_auto_limit"
+        when :offset
+          "OFFSET :mq_auto_offset"
+        when :order_by
+          "ORDER BY #{v.join(" , ")}"
+        when :group_by
+          "GROUP BY #{v.join(" , ")}"
+        when :set
+          "SET #{v.join(" , ")}"
+        else # for sql_literal
+          v
+        end
 
       unless sql.sub!("/*#{k}*/", joined)
         raise "The section for the /*#{k}*/ clause was not found!"
