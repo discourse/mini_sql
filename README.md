@@ -82,6 +82,7 @@ The builder predefined next _SQL Literals_
 | Method      | SQL Literal  |
 |-------------|--------------|
 | `select`    | `/*select*/` |
+| `count`     | `/*select*/` |
 | `where`     | `/*where*/`  |
 | `where_or`  | `/*where*/`  |
 | `where2`    | `/*where2*/` |

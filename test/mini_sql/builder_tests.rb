@@ -74,7 +74,7 @@ module MiniSql::BuilderTests
   end
 
   def test_join
-    @connection.exec("create temp table ta(x int)")
+    @connection.exec("create temporary table ta(x int)")
     @connection.exec("insert into ta(x) values(1),(2),(3)")
 
     builder = @connection.build("select * from ta /*join*/")
@@ -86,7 +86,7 @@ module MiniSql::BuilderTests
   end
 
   def test_left_join
-    @connection.exec("create temp table ta(x int)")
+    @connection.exec("create temporary table ta(x int)")
     @connection.exec("insert into ta(x) values(1),(2),(3)")
 
     builder = @connection.build("select * from ta /*left_join*/ /*order_by*/")
@@ -114,7 +114,7 @@ module MiniSql::BuilderTests
   end
 
   def test_set
-    @connection.exec("create temp table ta(x int, y int)")
+    @connection.exec("create temporary table ta(x int, y int)")
 
     @connection.exec("insert into ta values(1,2)")
 
@@ -138,7 +138,7 @@ module MiniSql::BuilderTests
   end
 
   def test_offset_limit
-    @connection.exec("create temp table ta(x int)")
+    @connection.exec("create temporary table ta(x int)")
     @connection.exec("insert into ta(x) values(1),(2),(3)")
 
     builder = @connection.build("select * from ta ORDER BY x /*limit*/ /*offset*/")
@@ -242,5 +242,26 @@ module MiniSql::BuilderTests
 
     err = assert_raises(RuntimeError) { builder.sql_literal(where: "where 1 = 1") }
     assert_match '/*where*/ is predefined, use method `.where` instead `sql_literal`', err.message
+  end
+
+  def test_count
+    @connection.exec("create temporary table users(x int)")
+    @connection.exec("insert into users values (1),(2),(3),(5),(5)")
+
+    builder = @connection.build("/*select*/ FROM users")
+    assert_equal builder.count, 5
+    assert_equal builder.count('distinct x'), 4
+
+    assert_equal(builder.select('*').to_sql, 'SELECT * FROM users')
+  end
+
+  def test_dup_and_clone
+    base_builder = @connection.build("/*select*/ FROM users /*where*/")
+    builder1 = base_builder.dup.where('id = ?', 10).select('id')
+    builder2 = base_builder.clone.where('id > ?', 5).select('count(*)')
+
+    assert_equal(base_builder.to_sql, '/*select*/ FROM users /*where*/')
+    assert_equal(builder1.to_sql, 'SELECT id FROM users WHERE (id = 10)')
+    assert_equal(builder2.to_sql, 'SELECT count(*) FROM users WHERE (id > 5)')
   end
 end
