@@ -11,9 +11,9 @@ class MiniSql::Builder
     @is_prepared = false
   end
 
-  def initialize_copy(original_builder)
-    @args     = original_builder.instance_variable_get(:@args).to_h { |k, v| [k, v.dup] }
-    @sections = original_builder.instance_variable_get(:@sections).to_h { |k, v| [k, v.dup] }
+  def initialize_copy(_original_builder)
+    @args = @args.transform_values { |v| v.dup }
+    @sections = @sections.transform_values { |v| v.dup }
   end
 
   literals1 =
