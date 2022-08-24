@@ -256,12 +256,12 @@ module MiniSql::BuilderTests
   end
 
   def test_dup_and_clone
-    base_builder = @connection.build("/*select*/ FROM users /*where*/")
+    base_builder = @connection.build("/*select*/ FROM users /*where*/").where('11 = ?', 11)
     builder1 = base_builder.dup.where('id = ?', 10).select('id')
     builder2 = base_builder.clone.where('id > ?', 5).select('count(*)')
 
-    assert_equal(base_builder.to_sql, '/*select*/ FROM users /*where*/')
-    assert_equal(builder1.to_sql, 'SELECT id FROM users WHERE (id = 10)')
-    assert_equal(builder2.to_sql, 'SELECT count(*) FROM users WHERE (id > 5)')
+    assert_equal(base_builder.to_sql, '/*select*/ FROM users WHERE (11 = 11)')
+    assert_equal(builder1.to_sql, 'SELECT id FROM users WHERE (11 = 11) AND (id = 10)')
+    assert_equal(builder2.to_sql, 'SELECT count(*) FROM users WHERE (11 = 11) AND (id > 5)')
   end
 end

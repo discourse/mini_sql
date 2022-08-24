@@ -12,8 +12,8 @@ class MiniSql::Builder
   end
 
   def initialize_copy(original_builder)
-    @args     = original_builder.instance_variable_get(:@args).dup
-    @sections = original_builder.instance_variable_get(:@sections).dup
+    @args     = original_builder.instance_variable_get(:@args).to_h { |k, v| [k, v.dup] }
+    @sections = original_builder.instance_variable_get(:@sections).to_h { |k, v| [k, v.dup] }
   end
 
   literals1 =
