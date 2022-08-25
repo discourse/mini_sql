@@ -11,6 +11,11 @@ class MiniSql::Builder
     @is_prepared = false
   end
 
+  def initialize_copy(_original_builder)
+    @args = @args.transform_values { |v| v.dup }
+    @sections = @sections.transform_values { |v| v.dup }
+  end
+
   literals1 =
     [:set, :where2, :where2_or, :where, :where_or, :order_by, :left_join, :join, :select, :group_by].each do |k|
       define_method k do |sql_part, *args|
@@ -73,6 +78,10 @@ class MiniSql::Builder
 
   def to_sql(hash_args = nil)
     @connection.param_encoder.encode(parametrized_sql, union_parameters(hash_args))
+  end
+
+  def count(field = '*')
+    dup.select("count(#{field})").query_single.first
   end
 
   private def connection_switcher
