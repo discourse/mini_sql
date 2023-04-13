@@ -53,7 +53,7 @@ class MiniSql::Builder
       if PREDEFINED_SQL_LITERALS.include?(name)
         raise "/*#{name}*/ is predefined, use method `.#{name}` instead `sql_literal`"
       end
-      @sections[name] = part_sql.is_a?(::MiniSql::Builder) ? part_sql.to_sql : part_sql
+      @sections[name] = part_sql.respond_to?(:to_sql) ? part_sql.to_sql : part_sql
     end
     self
   end
