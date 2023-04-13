@@ -96,7 +96,7 @@ The builder predefined next _SQL Literals_
 | `set`       | `/*set*/`    |
 
 ### Custom SQL Literals
-Use `sql_literal` to inject SQL into Builder from `String`, `Builder`, `ActiveRecord::Relation`, or any object that implements the `to_sql` method.
+Use `sql_literal` to inject SQL into Builder from `String`, `Builder`, `ActiveRecord::Relation`, or any object that implements `to_sql` method.
 
 ```ruby
 user_builder = conn
