@@ -57,6 +57,14 @@ module MiniSql
       Builder.new(self, sql)
     end
 
+    def to_sql(...)
+      if params && params.length > 0
+        param_encoder.encode(...)
+      else
+        sql
+      end
+    end
+
     def escape_string(str)
       raise NotImplementedError, "must be implemented by child connection"
     end
