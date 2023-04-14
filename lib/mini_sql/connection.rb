@@ -57,11 +57,11 @@ module MiniSql
       Builder.new(self, sql)
     end
 
-    def to_sql(...)
-      if params && params.length > 0
-        param_encoder.encode(...)
-      else
+    def to_sql(sql, *params)
+      if params.empty?
         sql
+      else
+        param_encoder.encode(sql, *params)
       end
     end
 
