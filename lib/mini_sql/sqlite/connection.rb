@@ -21,12 +21,12 @@ module MiniSql
 
       def query_single(sql, *params)
         # a bit lazy can be optimized
-        run(sql, *params).flatten!
+        run(sql, params).flatten!
       end
 
       def query_hash(sql, *params)
         r = []
-        run(sql, *params) do |set|
+        run(sql, params) do |set|
           set.each_hash do |h|
             r << h
           end
@@ -35,14 +35,14 @@ module MiniSql
       end
 
       def query_array(sql, *params)
-        run(sql, *params)
+        run(sql, params)
       end
 
       def exec(sql, *params)
 
         start = raw_connection.total_changes
 
-        r = run(sql, *params)
+        r = run(sql, params)
         # this is not safe for multithreading, also for DELETE from TABLE will return
         # incorrect data
         if r.length > 0
@@ -53,13 +53,13 @@ module MiniSql
       end
 
       def query(sql, *params)
-        run(sql, *params) do |set|
+        run(sql, params) do |set|
           deserializer_cache.materialize(set)
         end
       end
 
       def query_decorator(decorator, sql, *params)
-        run(sql, *params) do |set|
+        run(sql, params) do |set|
           deserializer_cache.materialize(set, decorator)
         end
       end
@@ -70,10 +70,8 @@ module MiniSql
 
       private
 
-      def run(sql, *params)
-        if params && params.length > 0
-          sql = param_encoder.encode(sql, *params)
-        end
+      def run(sql, params)
+        sql = to_sql(sql, *params)
         if block_given?
           stmt = SQLite3::Statement.new(raw_connection, sql)
           result = yield stmt.execute

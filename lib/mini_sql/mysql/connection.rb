@@ -51,18 +51,11 @@ module MiniSql
         raw_connection.escape(str)
       end
 
-      def build(sql)
-        Builder.new(self, sql)
-      end
-
       private
 
       def run(sql, as, params)
-        if params && params.length > 0
-          sql = param_encoder.encode(sql, *params)
-        end
         raw_connection.query(
-          sql,
+          to_sql(sql, *params),
           as: as,
           database_timezone: :utc,
           application_timezone: :utc,

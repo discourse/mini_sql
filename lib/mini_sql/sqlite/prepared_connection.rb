@@ -28,7 +28,7 @@ module MiniSql
       end
 
       private def run(sql, params)
-        prepared_sql, binds, _bind_names = @param_binder.bind(sql, params)
+        prepared_sql, binds, _bind_names = @param_binder.bind(sql, *params)
         statement = @prepared_cache.prepare_statement(prepared_sql)
         statement.bind_params(binds)
         if block_given?

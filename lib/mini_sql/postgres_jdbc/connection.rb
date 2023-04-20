@@ -78,10 +78,6 @@ module MiniSql
         run(sql, params).to_a
       end
 
-      def build(sql)
-        Builder.new(self, sql)
-      end
-
       def escape_string(str)
         raw_connection.escape_string(str)
       end
@@ -89,12 +85,9 @@ module MiniSql
       private
 
       def run(sql, params)
-        if params && params.length > 0
-          sql = param_encoder.encode(sql, *params)
-        end
         conn = raw_connection
         conn.typemap = self.class.typemap
-        conn.execute(sql)
+        conn.execute(to_sql(sql, *params))
       ensure
         # Force unsetting of typemap since we don't want mixed AR usage to continue to use these extra converters.
         conn.typemap = nil

@@ -192,10 +192,6 @@ module MiniSql
         result.clear if result
       end
 
-      def build(sql)
-        Builder.new(self, sql)
-      end
-
       def escape_string(str)
         raw_connection.escape_string(str)
       end
@@ -203,10 +199,7 @@ module MiniSql
       private
 
       def run(sql, params)
-        if params && params.length > 0
-          sql = param_encoder.encode(sql, *params)
-        end
-        raw_connection.async_exec(sql)
+        raw_connection.async_exec(to_sql(sql, *params))
       end
 
     end
