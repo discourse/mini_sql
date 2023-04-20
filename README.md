@@ -96,7 +96,7 @@ The builder predefined next _SQL Literals_
 | `set`       | `/*set*/`    |
 
 ### Custom SQL Literals
-Use `sql_literal` for injecting custom sql into Builder
+Use `sql_literal` to inject SQL into Builder from `String`, `Builder`, `ActiveRecord::Relation`, or any object that implements `to_sql` method.
 
 ```ruby
 user_builder = conn
@@ -104,9 +104,9 @@ user_builder = conn
   .where('type = ?', input_type)
   .group_by("date_trunc('day', created_at)")
 
-guest_builder = conn
-  .build("select date_trunc('day', created_at) day, count(*) from guest_topics /*where*/")
-  .where('state = ?', input_state)
+guest_relation = GuestTopic
+  .select("date_trunc('day', created_at) day, count(*)")
+  .where(state: input_state)
   .group_by("date_trunc('day', created_at)")
 
 conn
@@ -116,8 +116,8 @@ conn
      from u
      /*custom_join*/
   SQL
-  .sql_literal(user: user_builder, guest: guest_builder) # builder
-  .sql_literal(custom_join: "#{input_cond ? 'FULL' : 'LEFT'} JOIN g on g.day = u.day") # or string
+  .sql_literal(user: user_builder, guest: guest_relation) # Builder and ActiveRecord::Relation
+  .sql_literal(custom_join: "#{input_cond ? 'FULL' : 'LEFT'} JOIN g on g.day = u.day") # or String
   .query
 ```
 
