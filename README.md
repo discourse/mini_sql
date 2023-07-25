@@ -77,6 +77,14 @@ builder.query.each do |t|
 end
 ```
 
+The same builder's statement may occur multiple times.
+
+```ruby
+builder = conn.build('(/*select*/ from books) union (/*select*/ from movies)').select('title').query
+
+# => (SELECT title from books) union (SELECT title from movies)
+```
+
 The builder predefined next _SQL Literals_
 
 | Method      | SQL Literal  |
