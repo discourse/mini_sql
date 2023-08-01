@@ -229,6 +229,12 @@ module MiniSql::BuilderTests
     assert_equal(builder.to_sql, 'SELECT * FROM products WHERE id = 10')
   end
 
+  def test_sql_literal_multiple
+    builder = @connection.build("(select 1 AS x /*polymorphic_where*/) union all (select 2 AS x /*polymorphic_where*/)")
+    builder.sql_literal(polymorphic_where: 'where 1 = 1')
+    assert_equal(builder.to_sql, "(select 1 AS x where 1 = 1) union all (select 2 AS x where 1 = 1)")
+  end
+
   def test_sql_literal_for_builder
     user_builder = @connection.build("SELECT * FROM users /*where*/").where('id = ?', 10)
     builder = @connection.build("SELECT * FROM (/*user_table*/) AS t")
