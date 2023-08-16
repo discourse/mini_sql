@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'test_helper'
+require "test_helper"
 
-class MiniSql::Postgres::TestBuilder < MiniTest::Test
+class MiniSql::Postgres::TestBuilder < Minitest::Test
   def setup
     @connection = pg_connection
   end

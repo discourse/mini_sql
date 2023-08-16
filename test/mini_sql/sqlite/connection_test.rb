@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'test_helper'
-require 'tempfile'
+require "test_helper"
+require "tempfile"
 
-class MiniSql::Sqlite::TestConnection < MiniTest::Test
+class MiniSql::Sqlite::TestConnection < Minitest::Test
   def setup
     @connection = sqlite3_connection
   end

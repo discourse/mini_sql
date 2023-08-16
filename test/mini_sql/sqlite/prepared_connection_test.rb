@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
-require 'test_helper'
+require "test_helper"
 
-class MiniSql::Sqlite::TestPreparedConnection < MiniTest::Test
-
+class MiniSql::Sqlite::TestPreparedConnection < Minitest::Test
   include MiniSql::PreparedConnectionTests
 
   def setup
@@ -13,7 +12,7 @@ class MiniSql::Sqlite::TestPreparedConnection < MiniTest::Test
     super
   end
 
-  STMT_SQL = 'select * from sqlite_stmt'
+  STMT_SQL = "select * from sqlite_stmt"
   def last_prepared_statement
     @unprepared_connection
       .query(STMT_SQL)
@@ -23,7 +22,7 @@ class MiniSql::Sqlite::TestPreparedConnection < MiniTest::Test
   end
 
   def assert_last_stmt(statement_sql)
-    super statement_sql.gsub(/\$\d/, '?')
+    super statement_sql.gsub(/\$\d/, "?")
   end
 
   def test_boolean_param
@@ -31,7 +30,6 @@ class MiniSql::Sqlite::TestPreparedConnection < MiniTest::Test
 
     assert_last_stmt "SELECT * FROM posts WHERE active = $1"
     assert_equal 2, r[0].id
-    assert_equal 'super', r[0].title
+    assert_equal "super", r[0].title
   end
-
 end

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'test_helper'
-require 'tempfile'
+require "test_helper"
+require "tempfile"
 
-class MiniSql::Mysql::TestConnection < MiniTest::Test
+class MiniSql::Mysql::TestConnection < Minitest::Test
   def setup
     @connection = mysql_connection
   end
@@ -17,14 +17,13 @@ class MiniSql::Mysql::TestConnection < MiniTest::Test
   def test_can_exec_sql
     @connection.exec("create TEMPORARY table testing ( a int )")
 
-    3.times do
-      @connection.exec("insert into testing (a) values (:a)", a: 1)
-    end
+    3.times { @connection.exec("insert into testing (a) values (:a)", a: 1) }
 
     rows = @connection.exec("update testing set a = 7 where a = 1")
     assert_equal(3, rows)
 
-    count = @connection.query("select count(*) as count from testing").first.count
+    count =
+      @connection.query("select count(*) as count from testing").first.count
     assert_equal(3, count)
   end
 

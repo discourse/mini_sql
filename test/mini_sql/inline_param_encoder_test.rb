@@ -1,10 +1,9 @@
 # frozen_string_literal: true
 
-require 'test_helper'
+require "test_helper"
 
 module MiniSql
-  class TestInlineParamEncoder < MiniTest::Test
-
+  class TestInlineParamEncoder < Minitest::Test
     def setup
       @connection = pg_connection
       @encoder = InlineParamEncoder.new(@connection)
@@ -31,7 +30,7 @@ module MiniSql
     end
 
     def test_array_encoding
-      result = @encoder.encode("select :str", str: ["a", "a'"])
+      result = @encoder.encode("select :str", str: %w[a a'])
       assert_equal("select 'a', 'a'''", result)
     end
 
@@ -41,7 +40,7 @@ module MiniSql
     end
 
     def test_encode_times
-      t = Time.parse('2010-10-01T02:22:00Z')
+      t = Time.parse("2010-10-01T02:22:00Z")
       result = @encoder.encode("select :t", t: t)
       assert_equal("select '2010-10-01T02:22:00Z'", result)
     end
@@ -52,10 +51,9 @@ module MiniSql
     end
 
     def test_encode_dates
-      t = Date.parse('2010-10-01')
+      t = Date.parse("2010-10-01")
       result = @encoder.encode("select :t", t: t)
       assert_equal("select '2010-10-01'", result)
     end
-
   end
 end
