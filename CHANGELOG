@@ -1,3 +1,9 @@
+2022-03-07 - 1.5.0
+
+- FEATURE: add to_sql for easy conversion of builder to sql
+- FEATURE: improve active record compat
+- FEATURE: change builder to use gsub vs sub, which allows repeat clauses
+
 2022-03-07 - 1.4.0
 
 - PERF: Optimize multiple use param in prepared postgres sql
