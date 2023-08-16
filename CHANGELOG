@@ -1,4 +1,4 @@
-Pending:
+2023-08-16 - 1.2.0
 
 - FIX: when multiple params shared a prefix inline encoder may work in unexpected ways
 - FEATURE: add sql_literal for injecting sql in sql builder
