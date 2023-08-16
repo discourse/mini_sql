@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'test_helper'
+require "test_helper"
 
-class MiniSql::ActiveRecordPostgres::TestConnection < MiniTest::Test
+class MiniSql::ActiveRecordPostgres::TestConnection < Minitest::Test
   def setup
     @connection = active_record_pg_connection
   end
@@ -18,21 +18,28 @@ class MiniSql::ActiveRecordPostgres::TestConnection < MiniTest::Test
     active_record_connection = @connection.active_record_connection
     raw_pg_connection = active_record_connection.raw_connection
 
-    t = Thread.new do
-      @connection.query("SELECT pg_sleep(5)")
-    rescue PG::QueryCanceled
-      # Expected
-    end
+    t =
+      Thread.new do
+        @connection.query("SELECT pg_sleep(5)")
+      rescue PG::QueryCanceled
+        # Expected
+      end
 
     Thread.pass until active_record_connection.lock.mon_locked?
 
-    assert(start_time > 5.seconds.ago, "Locked the mutex while running the query")
+    assert(
+      start_time > 5.seconds.ago,
+      "Locked the mutex while running the query"
+    )
 
     raw_pg_connection.cancel()
 
     Thread.pass until !active_record_connection.lock.mon_locked?
 
-    assert(start_time > 5.seconds.ago, "Unlocked the mutex when the query finished")
+    assert(
+      start_time > 5.seconds.ago,
+      "Unlocked the mutex when the query finished"
+    )
 
     t.join
   end

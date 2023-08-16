@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
-require 'test_helper'
+require "test_helper"
 
-class MiniSql::Mysql::TestPreparedConnection < MiniTest::Test
-
+class MiniSql::Mysql::TestPreparedConnection < Minitest::Test
   include MiniSql::PreparedConnectionTests
 
   def setup
@@ -18,11 +17,14 @@ class MiniSql::Mysql::TestPreparedConnection < MiniTest::Test
   end
 
   def last_prepared_statement
-    @unprepared_connection.query("select * from mysql.general_log WHERE command_type= 'Prepare'").last&.argument
+    @unprepared_connection
+      .query("select * from mysql.general_log WHERE command_type= 'Prepare'")
+      .last
+      &.argument
   end
 
   def assert_last_stmt(statement_sql)
-    super statement_sql.gsub(/\$\d/, '?')
+    super statement_sql.gsub(/\$\d/, "?")
   end
 
   def test_boolean_param
@@ -30,7 +32,6 @@ class MiniSql::Mysql::TestPreparedConnection < MiniTest::Test
 
     assert_last_stmt "SELECT * FROM posts WHERE active = $1"
     assert_equal 2, r[0].id
-    assert_equal 'super', r[0].title
+    assert_equal "super", r[0].title
   end
-
 end

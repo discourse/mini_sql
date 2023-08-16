@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'test_helper'
+require "test_helper"
 
-class MiniSql::Postgres::TestConnection < MiniTest::Test
+class MiniSql::Postgres::TestConnection < Minitest::Test
   def setup
     @connection = pg_connection
   end
@@ -34,7 +34,7 @@ class MiniSql::Postgres::TestConnection < MiniTest::Test
 
   def test_inet
     r = @connection.query("select '1.1.1.1'::inet ip").first.ip
-    assert_equal(IPAddr.new('1.1.1.1'), r)
+    assert_equal(IPAddr.new("1.1.1.1"), r)
     assert_equal(IPAddr, r.class)
   end
 
@@ -45,7 +45,7 @@ class MiniSql::Postgres::TestConnection < MiniTest::Test
 
   def test_cidr
     ip = @connection.query_single("select network(inet('1.2.3.4/24'))").first
-    assert_equal(IPAddr.new('1.2.3.0/24'), ip)
+    assert_equal(IPAddr.new("1.2.3.0/24"), ip)
   end
 
   def test_bool
@@ -60,8 +60,8 @@ class MiniSql::Postgres::TestConnection < MiniTest::Test
   end
 
   def test_supports_time_with_zone_param
-    require 'active_support'
-    require 'active_support/core_ext'
+    require "active_support"
+    require "active_support/core_ext"
     Time.zone = "Eastern Time (US & Canada)"
     t = Time.zone.now
     r = @connection.query_single("select ?::timestamp with time zone", t)
@@ -69,9 +69,9 @@ class MiniSql::Postgres::TestConnection < MiniTest::Test
     delta = Time.now - r[0]
     assert(delta < 5)
 
-    @connection.exec('create temp table dating (x timestamp without time zone)')
-    @connection.exec('insert into dating values(?)', t)
-    d = @connection.query_single('select * from dating').first
+    @connection.exec("create temp table dating (x timestamp without time zone)")
+    @connection.exec("insert into dating values(?)", t)
+    d = @connection.query_single("select * from dating").first
 
     delta = Time.now - d
     assert(delta < 5)
@@ -80,9 +80,7 @@ class MiniSql::Postgres::TestConnection < MiniTest::Test
   def test_query_each_hash
     query = "select 1 a, 2 b union all select 3,4 union all select 5,6"
     rows = []
-    @connection.query_each_hash(query) do |row|
-      rows << row
-    end
+    @connection.query_each_hash(query) { |row| rows << row }
 
     assert_equal(rows.length, 3)
 
@@ -96,9 +94,7 @@ class MiniSql::Postgres::TestConnection < MiniTest::Test
     assert_equal(rows[2]["b"], 6)
 
     row = nil
-    @connection.query_each_hash("select :a a", a: 1) do |r|
-      row = r
-    end
+    @connection.query_each_hash("select :a a", a: 1) { |r| row = r }
 
     assert_equal(row["a"], 1)
   end
@@ -106,9 +102,7 @@ class MiniSql::Postgres::TestConnection < MiniTest::Test
   def test_query_each
     query = "select 1 a, 2 b union all select 3,4 union all select 5,6"
     rows = []
-    @connection.query_each(query) do |row|
-      rows << row
-    end
+    @connection.query_each(query) { |row| rows << row }
 
     assert_equal(rows.length, 3)
 
@@ -122,9 +116,7 @@ class MiniSql::Postgres::TestConnection < MiniTest::Test
     assert_equal(rows[2].b, 6)
 
     row = nil
-    @connection.query_each("select :a a", a: 1) do |r|
-      row = r
-    end
+    @connection.query_each("select :a a", a: 1) { |r| row = r }
 
     assert_equal(row.a, 1)
   end
@@ -132,8 +124,7 @@ class MiniSql::Postgres::TestConnection < MiniTest::Test
   def test_bad_usage_query_each
     @connection.query_each("select 1 a") do
       assert_raises(PG::UnableToSend) do
-        @connection.query_each("select 1 b") do
-        end
+        @connection.query_each("select 1 b") {}
       end
     end
 
@@ -153,5 +144,4 @@ class MiniSql::Postgres::TestConnection < MiniTest::Test
     assert_equal(row.two, 2)
     assert_equal(row.column2, 3)
   end
-
 end

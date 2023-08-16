@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'test_helper'
+require "test_helper"
 
-class MiniSql::Mysql::TestBuilder < MiniTest::Test
+class MiniSql::Mysql::TestBuilder < Minitest::Test
   def setup
     @connection = mysql_connection
   end
@@ -24,8 +24,9 @@ class MiniSql::Mysql::TestBuilder < MiniTest::Test
   end
 
   def test_accepts_params_at_end
-    builder = @connection.build("select :bob as a from for_testing /*where*/ limit 1")
-    builder.where('1 = :one', one: 1)
+    builder =
+      @connection.build("select :bob as a from for_testing /*where*/ limit 1")
+    builder.where("1 = :one", one: 1)
     r = builder.query_hash(bob: 1)
     assert_equal([{ "a" => 1 }], r)
 
@@ -46,8 +47,11 @@ class MiniSql::Mysql::TestBuilder < MiniTest::Test
   end
 
   def test_query_decorator
-    builder = @connection.build("select :price AS price, :quantity AS quantity from for_testing /*where*/")
-    builder.where('1 = :one', one: 1)
+    builder =
+      @connection.build(
+        "select :price AS price, :quantity AS quantity from for_testing /*where*/"
+      )
+    builder.where("1 = :one", one: 1)
 
     r = builder.query_decorator(ProductDecorator, price: 20, quantity: 3).first
     assert_equal(60, r.amount_price)
