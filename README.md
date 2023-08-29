@@ -276,7 +276,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
   export MINI_SQL_MYSQL_HOST=127.0.0.1
   export MINI_SQL_MYSQL_PORT=33306
   
-  docker run --name mini-sql-postgres --rm -it -p 55432:5432 -e POSTGRES_DB=test_mini_sql -e POSTGRES_HOST_AUTH_METHOD=trust -d postgres
+  docker run --name mini-sql-postgres --rm -it -p 55432:5432 -e POSTGRES_DB=test_mini_sql -e POSTGRES_HOST_AUTH_METHOD=trust -d postgres # or ankane/pgvector for testing vector type decoder
   export MINI_SQL_PG_USER=postgres
   export MINI_SQL_PG_HOST=127.0.0.1
   export MINI_SQL_PG_PORT=55432

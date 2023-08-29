@@ -26,6 +26,20 @@ module MiniSql
             else
               map.add_coder(MiniSql::Postgres::Coders::TimestampUtc.new(name: "timestamp", oid: 1114, format: 0))
             end
+
+            if defined? Pgvector::PG
+              vector_oid =
+                PG::BasicTypeRegistry::CoderMapsBundle
+                  .new(conn)
+                  .typenames_by_oid
+                  .find { |k, v| v == "vector" }
+                  &.first
+
+              if !vector_oid.nil?
+                map.add_coder(Pgvector::PG::TextDecoder::Vector.new(name: "vector", oid: vector_oid, format: 0))
+                map.add_coder(Pgvector::PG::BinaryDecoder::Vector.new(name: "vector", oid: vector_oid, format: 1))
+              end
+            end
             map
           end
       end
