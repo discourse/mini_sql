@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "pgvector" if RUBY_ENGINE != "jruby" && RUBY_VERSION >= "3.0"
 
 class MiniSql::Postgres::TestConnection < Minitest::Test
   def setup
@@ -46,6 +47,15 @@ class MiniSql::Postgres::TestConnection < Minitest::Test
   def test_cidr
     ip = @connection.query_single("select network(inet('1.2.3.4/24'))").first
     assert_equal(IPAddr.new("1.2.3.0/24"), ip)
+  end
+
+  def test_vector
+    skip if @connection.query("SELECT 1 FROM pg_available_extensions WHERE name = 'vector';").empty?
+
+    vector = [0.1, -0.2, 0.3]
+    @connection.exec("SET client_min_messages TO WARNING; CREATE EXTENSION IF NOT EXISTS vector;")
+    result = @connection.query_single("SELECT '[:vector]'::vector", vector: vector)
+    assert_equal(vector, result.first)
   end
 
   def test_bool

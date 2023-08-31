@@ -49,5 +49,8 @@ Gem::Specification.new do |spec|
     spec.add_development_dependency "mysql2"
     spec.add_development_dependency "sqlite3", "~> 1.4.4"
     spec.add_development_dependency "activerecord", "~> 7.0.0"
+    if RUBY_VERSION >= "3.0"
+      spec.add_development_dependency "pgvector", "~> 0.2.1"
+    end
   end
 end
