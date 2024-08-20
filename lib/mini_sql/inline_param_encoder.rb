@@ -2,10 +2,11 @@
 
 module MiniSql
   class InlineParamEncoder
-    attr_reader :conn
+    attr_reader :conn, :array_encoder
 
-    def initialize(conn)
+    def initialize(conn, array_encoder = nil)
       @conn = conn
+      @array_encoder = array_encoder
     end
 
     def encode(sql, *params)
@@ -62,7 +63,7 @@ module MiniSql
       when false      then "false"
       when nil        then "NULL"
       when []         then "NULL"
-      when Array      then value.map { |v| quote_val(v) }.join(', ')
+      when Array      then array_encoder ? "'#{array_encoder.encode(value)}'" : value.map { |v| quote_val(v) }.join(', ')
       else raise TypeError, "can't quote #{value.class.name}"
       end
     end

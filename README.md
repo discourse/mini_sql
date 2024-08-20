@@ -56,6 +56,15 @@ p conn.query_array("select 1 as a, '2' as b union select 3, 'e'").to_h
 # {1 => '2', 3 => 'e'}
 ```
 
+## Auto Encode Arrays (only PostgreSQL)
+```ruby
+pg_conn = PG.connect(db_name: 'my_db')
+conn = MiniSql::Connection.get(pg_conn, auto_encode_arrays: true)
+
+# select * from table where id = ANY('{1,2,3}')
+conn.query("select * from table where id = ANY(?)", [1, 2, 3])
+```
+
 ## The query builder
 
 You can use the simple query builder interface to compose queries.
@@ -241,15 +250,33 @@ Streaming support is only implemented in the postgres backend at the moment, PRs
 See [benchmark mini_sql](https://github.com/discourse/mini_sql/tree/master/bench/prepared_perf.rb)
 [benchmark mini_sql vs rails](https://github.com/discourse/mini_sql/tree/master/bench/bilder_perf.rb).
 
-By default prepared cache size is 500 queries. Use prepared queries only for frequent queries.
-
 ```ruby
 conn.prepared.query("select * from table where id = ?", id: 10)
+```
 
-ids = rand(100) < 90 ? [1] : [1, 2]
-builder = conn.build("select * from table /*where*/")
-builder.where("id IN (?)", ids)
-builder.prepared(ids.size == 1).query # most frequent query
+### Prepared Statement Bloat in PostgreSQL
+By default prepared cache size is __500__ queries per connection. Use prepared queries only for frequent queries.
+
+The following code will create 100 prepared statements in PostgreSQL for a single database connection:
+
+```ruby
+100.times do |i|
+  ids = (1..i).to_a
+  conn.prepared.query("SELECT * FROM table WHERE id IN (?)", ids)
+end
+```
+
+This can lead to high memory usage and performance issues due to the overhead of maintaining numerous prepared statements.
+
+To improve performance, you can enable `auto_encode_arrays: true`. With this option, only one prepared statement is created, regardless of the size of ids:
+
+```ruby
+pg_conn = PG.connect(db_name: 'my_db')
+conn = MiniSql::Connection.get(pg_conn, auto_encode_arrays: true)
+100.times do |i|
+  ids = (1..i).to_a
+  conn.prepared.query("select * from table where id = ANY (?)", ids)
+end
 ```
 
 ## Active Record Postgres

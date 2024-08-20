@@ -52,7 +52,8 @@ module MiniSql
       def initialize(raw_connection, args = nil)
         @raw_connection = raw_connection
         @deserializer_cache = (args && args[:deserializer_cache]) || self.class.default_deserializer_cache
-        @param_encoder = (args && args[:param_encoder]) || InlineParamEncoder.new(self)
+        array_encoder = PG::TextEncoder::Array.new if args && args[:auto_encode_arrays]
+        @param_encoder = (args && args[:param_encoder]) || InlineParamEncoder.new(self, array_encoder)
         @type_map = args && args[:type_map]
       end
 
