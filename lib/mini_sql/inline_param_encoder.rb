@@ -64,7 +64,7 @@ module MiniSql
       when true         then "true"
       when false        then "false"
       when nil          then "NULL"
-      when EMPTY_ARRAY  then array_encoder ? "{}" : "NULL"
+      when EMPTY_ARRAY  then array_encoder ? "'{}'" : "NULL"
       when Array        then array_encoder ? "'#{array_encoder.encode(value)}'" : value.map { |v| quote_val(v) }.join(', ')
       else raise TypeError, "can't quote #{value.class.name}"
       end
