@@ -51,19 +51,21 @@ module MiniSql
       value.utc.iso8601
     end
 
+    EMPTY_ARRAY = [].freeze
+
     def quote_val(value)
       case value
-      when String     then "'#{conn.escape_string(value.to_s)}'"
-      when Numeric    then value.to_s
-      when BigDecimal then value.to_s("F")
-      when Time       then "'#{quoted_time(value)}'"
-      when Date       then "'#{value.to_s}'"
-      when Symbol     then "'#{conn.escape_string(value.to_s)}'"
-      when true       then "true"
-      when false      then "false"
-      when nil        then "NULL"
-      when []         then "NULL"
-      when Array      then array_encoder ? "'#{array_encoder.encode(value)}'" : value.map { |v| quote_val(v) }.join(', ')
+      when String       then "'#{conn.escape_string(value.to_s)}'"
+      when Numeric      then value.to_s
+      when BigDecimal   then value.to_s("F")
+      when Time         then "'#{quoted_time(value)}'"
+      when Date         then "'#{value.to_s}'"
+      when Symbol       then "'#{conn.escape_string(value.to_s)}'"
+      when true         then "true"
+      when false        then "false"
+      when nil          then "NULL"
+      when EMPTY_ARRAY  then array_encoder ? "{}" : "NULL"
+      when Array        then array_encoder ? "'#{array_encoder.encode(value)}'" : value.map { |v| quote_val(v) }.join(', ')
       else raise TypeError, "can't quote #{value.class.name}"
       end
     end

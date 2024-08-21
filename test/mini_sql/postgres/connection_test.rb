@@ -160,10 +160,12 @@ class MiniSql::Postgres::TestConnection < Minitest::Test
 
     ints = [1, 2, 3]
     strings = %w[a b c]
-    row = connection.query("select ?::int[] ints, ?::text[] strings", ints, strings).first
+    empty_array = []
+    row = connection.query("select ?::int[] ints, ?::text[] strings, ? empty_array", ints, strings, empty_array).first
 
     assert_equal(row.ints, ints)
     assert_equal(row.strings, strings)
+    assert_equal(row.empty_array, empty_array)
   end
 
 end
