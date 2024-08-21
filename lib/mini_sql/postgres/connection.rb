@@ -3,7 +3,7 @@
 module MiniSql
   module Postgres
     class Connection < MiniSql::Connection
-      attr_reader :raw_connection, :param_encoder, :deserializer_cache
+      attr_reader :raw_connection, :param_encoder, :deserializer_cache, :array_encoder
 
       def self.default_deserializer_cache
         @deserializer_cache ||= DeserializerCache.new
@@ -52,7 +52,7 @@ module MiniSql
       def initialize(raw_connection, args = nil)
         @raw_connection = raw_connection
         @deserializer_cache = (args && args[:deserializer_cache]) || self.class.default_deserializer_cache
-        array_encoder = PG::TextEncoder::Array.new if args && args[:auto_encode_arrays]
+        @array_encoder = PG::TextEncoder::Array.new if args && args[:auto_encode_arrays]
         @param_encoder = (args && args[:param_encoder]) || InlineParamEncoder.new(self, array_encoder)
         @type_map = args && args[:type_map]
       end

@@ -13,7 +13,7 @@ module MiniSql
         @param_encoder      = unprepared_connection.param_encoder
 
         @prepared_cache     = PreparedCache.new(@raw_connection)
-        @param_binder       = PreparedBinds.new
+        @param_binder       = unprepared.array_encoder ? PreparedBindsAutoArray.new(unprepared.array_encoder) : PreparedBinds.new
       end
 
       def build(_)

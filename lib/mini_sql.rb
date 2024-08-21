@@ -29,6 +29,7 @@ module MiniSql
       autoload :PreparedConnection, "mini_sql/postgres/prepared_connection"
       autoload :PreparedCache,      "mini_sql/postgres/prepared_cache"
       autoload :PreparedBinds,      "mini_sql/postgres/prepared_binds"
+      autoload :PreparedBindsAutoArray, "mini_sql/postgres/prepared_binds_auto_array"
     end
 
     module ActiveRecordPostgres

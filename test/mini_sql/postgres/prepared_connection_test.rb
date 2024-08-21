@@ -82,4 +82,37 @@ class MiniSql::Postgres::TestPreparedConnection < Minitest::Test
     assert_last_stmt "select $1, $1, $1"
     assert_equal %w[test test test], r
   end
+
+  def test_array_with_auto_encode_arrays
+    connection = pg_connection(auto_encode_arrays: true).prepared
+
+    ints = [1, 2, 3]
+    strings = %w[a b c]
+    empty_array = []
+    row = connection.query_single("select ?::int[], ?::text[], ?::int[]", ints, strings, empty_array)
+
+    assert_equal(row, [ints, strings, empty_array])
+  end
+
+  def test_simple_with_auto_encode_arrays
+    connection = pg_connection(auto_encode_arrays: true).prepared
+
+    int = 1
+    str = "str"
+    date = Date.new(2020, 10, 10)
+    row = connection.query_single("select ?::int, ?, ?::date", int, str, date)
+
+    assert_equal(row, [int, str, date])
+  end
+
+  def test_hash_params_with_auto_encode_arrays
+    connection = pg_connection(auto_encode_arrays: true).prepared
+
+    num = 1
+    date = Date.new(2020, 10, 10)
+    ints = [1, 2, 3]
+    row = connection.query_single("select :num::int, :date::date, :ints::int[]", num: num, date: date, ints: ints)
+
+    assert_equal(row, [num, date, ints])
+  end
 end
