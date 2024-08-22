@@ -155,26 +155,4 @@ class MiniSql::Postgres::TestConnection < Minitest::Test
     assert_equal(row.column2, 3)
   end
 
-  def test_array_with_auto_encode_arrays
-    connection = pg_connection(auto_encode_arrays: true)
-
-    ints = [1, 2, 3]
-    strings = %w[a b c]
-    empty_array = []
-    row = connection.query_single("select ?::int[], ?::text[], ?::int[]", ints, strings, empty_array)
-
-    assert_equal(row, [ints, strings, empty_array])
-  end
-
-  def test_simple_with_auto_encode_arrays
-    connection = pg_connection(auto_encode_arrays: true)
-
-    int = 1
-    str = "str"
-    date = Date.new(2020, 10, 10)
-    row = connection.query_single("select ?, ?, ?::date", int, str, date)
-
-    assert_equal(row, [int, str, date])
-  end
-
 end

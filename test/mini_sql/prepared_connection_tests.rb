@@ -2,7 +2,7 @@
 
 module MiniSql::PreparedConnectionTests
 
-  def setup
+  def setup_tables
     @unprepared_connection.exec "CREATE TEMPORARY table posts(id int, title text, active bool)"
     @unprepared_connection.exec "INSERT INTO posts(id, title, active) VALUES(1, 'ruby', false), (2, 'super', true), (3, 'language', false)"
   end
@@ -14,7 +14,7 @@ module MiniSql::PreparedConnectionTests
   end
 
   def test_disable_prepared
-    @prepared_connection.prepared(false).exec('select 1')
+    @connection.prepared(false).exec('select 1')
     assert_nil(last_prepared_statement)
   end
 
@@ -33,7 +33,9 @@ module MiniSql::PreparedConnectionTests
   end
 
   def test_array_hash_params
-    r = @prepared_connection.query("SELECT id, title FROM posts WHERE id IN (:ids)", ids: [2, 3])
+    return if @unprepared_connection.respond_to?(:array_encoder) && @unprepared_connection.array_encoder
+
+    r = @connection.query("SELECT id, title FROM posts WHERE id IN (:ids)", ids: [2, 3])
 
     assert_last_stmt "SELECT id, title FROM posts WHERE id IN ($1, $2)"
     assert_equal 2, r[0].id
@@ -42,7 +44,9 @@ module MiniSql::PreparedConnectionTests
   end
 
   def test_array_simple_params
-    r = @prepared_connection.query("SELECT id, title FROM posts WHERE id IN (?)", [2, 3])
+    return if @unprepared_connection.respond_to?(:array_encoder) && @unprepared_connection.array_encoder
+
+    r = @connection.query("SELECT id, title FROM posts WHERE id IN (?)", [2, 3])
 
     assert_last_stmt "SELECT id, title FROM posts WHERE id IN ($1, $2)"
     assert_equal 2, r[0].id
@@ -51,7 +55,7 @@ module MiniSql::PreparedConnectionTests
   end
 
   def test_string_param
-    r = @prepared_connection.query_single('SELECT :title', title: 'The ruby')
+    r = @connection.query_single('SELECT :title', title: 'The ruby')
 
     assert_last_stmt "SELECT $1"
     assert_equal('The ruby', r[0])

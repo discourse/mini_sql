@@ -7,9 +7,9 @@ class MiniSql::Sqlite::TestPreparedConnection < Minitest::Test
 
   def setup
     @unprepared_connection = sqlite3_connection
-    @prepared_connection = @unprepared_connection.prepared
+    @connection = @unprepared_connection.prepared
 
-    super
+    setup_tables
   end
 
   STMT_SQL = "select * from sqlite_stmt"
@@ -26,7 +26,7 @@ class MiniSql::Sqlite::TestPreparedConnection < Minitest::Test
   end
 
   def test_boolean_param
-    r = @prepared_connection.query("SELECT * FROM posts WHERE active = ?", 1)
+    r = @connection.query("SELECT * FROM posts WHERE active = ?", 1)
 
     assert_last_stmt "SELECT * FROM posts WHERE active = $1"
     assert_equal 2, r[0].id
