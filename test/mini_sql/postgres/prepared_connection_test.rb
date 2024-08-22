@@ -62,14 +62,11 @@ class MiniSql::Postgres::TestPreparedConnection < Minitest::Test
   end
 
   def test_limit_prepared_cache
-    @prepared_connection.instance_variable_get(
-      :@prepared_cache
-    ).instance_variable_set(:@max_size, 1)
+    @prepared_connection.instance_variable_set(:@prepared_cache, MiniSql::Postgres::PreparedCache.new(@unprepared_connection, 1))
 
     assert_equal @prepared_connection.query_single("SELECT ?", 1), %w[1]
     assert_equal @prepared_connection.query_single("SELECT ?, ?", 1, 2), %w[1 2]
-    assert_equal @prepared_connection.query_single("SELECT ?, ?, ?", 1, 2, 3),
-                 %w[1 2 3]
+    assert_equal @prepared_connection.query_single("SELECT ?, ?, ?", 1, 2, 3), %w[1 2 3]
 
     ps = @unprepared_connection.query("select * from pg_prepared_statements")
     assert_equal ps.size, 1

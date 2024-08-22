@@ -7,12 +7,8 @@ module MiniSql
       attr_reader :unprepared
 
       def initialize(unprepared_connection)
-        @unprepared         = unprepared_connection
-        @raw_connection     = unprepared_connection.raw_connection
-        @param_encoder      = unprepared_connection.param_encoder
-
-        @prepared_cache     = PreparedCache.new(@raw_connection)
-        @param_binder       = PreparedBinds.new
+        @unprepared    = unprepared_connection
+        @param_binder  = PreparedBinds.new
       end
 
       def build(_)
@@ -29,6 +25,7 @@ module MiniSql
 
       private def run(sql, params)
         prepared_sql, binds, _bind_names = @param_binder.bind(sql, *params)
+        @prepared_cache ||= PreparedCache.new(unprepared)
         statement = @prepared_cache.prepare_statement(prepared_sql)
         statement.bind_params(binds)
         if block_given?
