@@ -15,9 +15,7 @@ module MiniSql
         raise 'Builder can not be called on prepared connections, instead of `::MINI_SQL.prepared.build(sql).query` use `::MINI_SQL.build(sql).prepared.query`'
       end
 
-      def prepared(condition = true)
-        condition ? self : @unprepared
-      end
+      undef_method :prepared
 
       def deserializer_cache
         @unprepared.deserializer_cache

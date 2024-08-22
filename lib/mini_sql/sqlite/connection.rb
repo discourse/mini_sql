@@ -11,12 +11,8 @@ module MiniSql
         @deserializer_cache = (args && args[:deserializer_cache]) || DeserializerCache.new
       end
 
-      def prepared(condition = true)
-        if condition
-          @prepared ||= PreparedConnection.new(self)
-        else
-          self
-        end
+      def prepared
+        @prepared ||= PreparedConnection.new(self)
       end
 
       def query_single(sql, *params)

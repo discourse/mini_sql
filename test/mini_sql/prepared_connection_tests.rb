@@ -14,7 +14,7 @@ module MiniSql::PreparedConnectionTests
   end
 
   def test_disable_prepared
-    @connection.prepared(false).exec('select 1')
+    @connection.unprepared.exec('select 1')
     assert_nil(last_prepared_statement)
   end
 

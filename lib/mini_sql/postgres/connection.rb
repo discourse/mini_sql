@@ -61,12 +61,8 @@ module MiniSql
         @type_map ||= self.class.type_map(raw_connection)
       end
 
-      def prepared(condition = true)
-        if condition
-          @prepared ||= PreparedConnection.new(self)
-        else
-          self
-        end
+      def prepared
+        @prepared ||= PreparedConnection.new(self)
       end
 
       # Returns a flat array containing all results.
