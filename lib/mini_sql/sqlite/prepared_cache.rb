@@ -9,7 +9,7 @@ module MiniSql
       private
 
       def alloc(sql)
-        @connection.prepare(sql)
+        raw_connection.prepare(sql)
       end
 
       def dealloc(statement)

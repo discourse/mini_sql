@@ -41,13 +41,12 @@ module MiniSql
 
       def bind_array(sql, array)
         sql = sql.dup
-        param_i = 0
+        param_i = -1
         i = 0
         binds = []
         bind_names = []
         sql.gsub!("?") do
-          param_i += 1
-          array_wrap(array[param_i - 1]).map do |vv|
+          array_wrap(array[param_i += 1]).map do |vv|
             binds << vv
             i += 1
             bind_names << [BindName.new("$#{i}")]

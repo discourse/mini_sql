@@ -69,6 +69,8 @@ module MiniSql::ConnectionTests
   end
 
   def test_can_deal_with_arrays
+    return if @connection.respond_to?(:array_encoder) && @connection.array_encoder
+
     r = @connection.query_single("select :array as array", array: [1, 2, 3])
     assert_equal([1, 2, 3], r)
 

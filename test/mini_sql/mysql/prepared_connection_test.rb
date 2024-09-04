@@ -7,9 +7,9 @@ class MiniSql::Mysql::TestPreparedConnection < Minitest::Test
 
   def setup
     @unprepared_connection = mysql_connection
-    @prepared_connection = @unprepared_connection.prepared
+    @connection = @unprepared_connection.prepared
 
-    super
+    setup_tables
 
     @unprepared_connection.exec("SET GLOBAL log_output = 'TABLE'")
     @unprepared_connection.exec("SET GLOBAL general_log = 'ON'")
@@ -28,7 +28,7 @@ class MiniSql::Mysql::TestPreparedConnection < Minitest::Test
   end
 
   def test_boolean_param
-    r = @prepared_connection.query("SELECT * FROM posts WHERE active = ?", true)
+    r = @connection.query("SELECT * FROM posts WHERE active = ?", true)
 
     assert_last_stmt "SELECT * FROM posts WHERE active = $1"
     assert_equal 2, r[0].id

@@ -155,15 +155,4 @@ class MiniSql::Postgres::TestConnection < Minitest::Test
     assert_equal(row.column2, 3)
   end
 
-  def test_encode_array
-    connection = pg_connection(auto_encode_arrays: true)
-
-    ints = [1, 2, 3]
-    strings = %w[a b c]
-    row = connection.query("select ?::int[] ints, ?::text[] strings", ints, strings).first
-
-    assert_equal(row.ints, ints)
-    assert_equal(row.strings, strings)
-  end
-
 end

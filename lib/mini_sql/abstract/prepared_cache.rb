@@ -14,7 +14,7 @@ module MiniSql
       end
 
       def prepare_statement(sql)
-        stm_key = "#{@connection.object_id}-#{sql}"
+        stm_key = "#{raw_connection.object_id}-#{sql}"
         statement = @cache.delete(stm_key)
         if statement
           @cache[stm_key] = statement
@@ -27,6 +27,10 @@ module MiniSql
       end
 
       private
+
+      def raw_connection
+        @connection.raw_connection
+      end
 
       def next_key
         "s#{@counter += 1}"

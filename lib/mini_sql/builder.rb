@@ -70,9 +70,8 @@ class MiniSql::Builder
     connection_switcher.query_decorator(decorator, parametrized_sql, union_parameters(hash_args))
   end
 
-  def prepared(condition = true)
-    @is_prepared = condition
-
+  def prepared
+    @is_prepared = true
     self
   end
 
