@@ -52,8 +52,7 @@ module MiniSql
     end
 
     def quoted_native_array(arr)
-      quoted = arr.map { |v| v.is_a?(String) ? conn.escape_string(v) : v }
-      "'#{array_encoder.encode(quoted, Encoding::UTF_8)}'"
+      array_encoder.encode(arr.map { |v| v.is_a?(String) ? conn.escape_string(v) : v }, Encoding::UTF_8)
     end
 
     EMPTY_ARRAY = [].freeze
@@ -70,7 +69,7 @@ module MiniSql
       when false        then "false"
       when nil          then "NULL"
       when EMPTY_ARRAY  then array_encoder ? "'{}'" : "NULL"
-      when Array        then array_encoder ? quoted_native_array(value) : value.map { |v| quote_val(v) }.join(', ')
+      when Array        then array_encoder ? "'#{quoted_native_array(value)}'" : value.map { |v| quote_val(v) }.join(', ')
       else raise TypeError, "can't quote #{value.class.name}"
       end
     end
