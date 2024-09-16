@@ -20,6 +20,16 @@ module MiniSql::Postgres::ArrayTests
 
     assert_equal(row, [nums, strings, empty_array])
   end
+
+  def test_escape_strings
+    strings = %w['1 "2 3]
+
+    row = @connection.query_single("select ?::text[]", strings).first
+
+    assert_equal(row[0], "'1")
+    assert_equal(row[1], "\"2")
+    assert_equal(row[2], "3")
+  end
 end
 
 class MiniSql::Postgres::TestAutoEncodeArraysPrepared < MiniSql::Postgres::TestPreparedConnection
@@ -38,5 +48,12 @@ class MiniSql::Postgres::TestAutoEncodeArraysUnprepared < MiniSql::Postgres::Tes
 
   def setup
     @connection = pg_connection(auto_encode_arrays: true)
+  end
+
+  def test_encoding
+    sql = @connection.to_sql("select ?::text[]", %w[hello привет])
+
+    assert_equal(sql, "select '{hello,привет}'::text[]")
+    assert_equal(sql.encoding, Encoding::UTF_8)
   end
 end
