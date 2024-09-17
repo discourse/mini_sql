@@ -51,6 +51,10 @@ module MiniSql
       value.utc.iso8601
     end
 
+    def quoted_native_array(arr)
+      array_encoder.encode(arr.map { |v| v.is_a?(String) ? conn.escape_string(v) : v }, Encoding::UTF_8)
+    end
+
     EMPTY_ARRAY = [].freeze
 
     def quote_val(value)
@@ -65,7 +69,7 @@ module MiniSql
       when false        then "false"
       when nil          then "NULL"
       when EMPTY_ARRAY  then array_encoder ? "'{}'" : "NULL"
-      when Array        then array_encoder ? "'#{array_encoder.encode(value)}'" : value.map { |v| quote_val(v) }.join(', ')
+      when Array        then array_encoder ? "'#{quoted_native_array(value)}'" : value.map { |v| quote_val(v) }.join(', ')
       else raise TypeError, "can't quote #{value.class.name}"
       end
     end
