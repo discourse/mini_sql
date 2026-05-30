@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require "bundler/gem_tasks"
+require "bundler/gem_helper"
+Bundler::GemHelper.install_tasks(name: "mini_sql")
 require "rake/testtask"
 
 if RUBY_ENGINE == 'jruby' # Excluding sqlite3 tests

@@ -120,6 +120,7 @@ module MiniSql
           sql = param_encoder.encode(sql, *params)
         end
 
+        tm = type_map
         raw_connection.send_query(sql)
         raw_connection.set_single_row_mode
 
@@ -127,23 +128,25 @@ module MiniSql
           result = raw_connection.get_result
           break if !result
 
-          result.check
+          begin
+            result.check
 
-          if result.ntuples == 0
-            # skip, this happens at the end when we get totals
-          else
-            materializer ||= deserializer_cache.materializer(result)
-            result.type_map = type_map
-            i = 0
-            # technically we should only get 1 row here
-            # but protect against future batching changes
-            while i < result.ntuples
-              yield materializer.materialize(result, i)
-              i += 1
+            if result.ntuples == 0
+              # skip, this happens at the end when we get totals
+            else
+              materializer ||= deserializer_cache.materializer(result)
+              result.type_map = tm
+              i = 0
+              # technically we should only get 1 row here
+              # but protect against future batching changes
+              while i < result.ntuples
+                yield materializer.materialize(result, i)
+                i += 1
+              end
             end
+          ensure
+            result.clear
           end
-
-          result.clear
         end
       end
 
@@ -153,6 +156,7 @@ module MiniSql
           sql = param_encoder.encode(sql, *params)
         end
 
+        tm = type_map
         raw_connection.send_query(sql)
         raw_connection.set_single_row_mode
 
@@ -160,23 +164,25 @@ module MiniSql
           result = raw_connection.get_result
           break if !result
 
-          result.check
+          begin
+            result.check
 
-          if result.ntuples == 0
-            # skip, this happens at the end when we get totals
-          else
-            result.type_map = type_map
-            i = 0
+            if result.ntuples == 0
+              # skip, this happens at the end when we get totals
+            else
+              result.type_map = tm
+              i = 0
 
-            # technically we should only get 1 row here
-            # but protect against future batching changes
-            while i < result.ntuples
-              yield result[i]
-              i += 1
+              # technically we should only get 1 row here
+              # but protect against future batching changes
+              while i < result.ntuples
+                yield result[i]
+                i += 1
+              end
             end
+          ensure
+            result.clear
           end
-
-          result.clear
         end
       end
 

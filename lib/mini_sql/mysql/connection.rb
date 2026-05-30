@@ -29,8 +29,8 @@ module MiniSql
       end
 
       def exec(sql, *params)
-        run(sql, :array, params)
-        raw_connection.affected_rows
+        result = run(sql, :array, params)
+        result ? result.count : raw_connection.affected_rows
       end
 
       def query(sql, *params)

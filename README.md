@@ -8,6 +8,16 @@ Add this line to your application's Gemfile:
 gem 'mini_sql'
 ```
 
+For faster PostgreSQL row materialization, add the optional native companion gem:
+
+```ruby
+gem 'mini_sql'
+gem 'mini_sql-pg_native'
+```
+
+`mini_sql-pg_native` only affects the PostgreSQL adapter and can be disabled with
+`MINI_SQL_PG_NATIVE=0`.
+
 And then execute:
 
     $ bundle

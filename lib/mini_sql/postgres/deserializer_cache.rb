@@ -1,5 +1,11 @@
 # frozen_string_literal: true
 
+begin
+  require "mini_sql/pg_native" unless ENV["MINI_SQL_PG_NATIVE"] == "0"
+rescue LoadError
+  # mini_sql-pg_native is an optional companion gem.
+end
+
 module MiniSql
   module Postgres
     class DeserializerCache
@@ -28,29 +34,28 @@ module MiniSql
       def materialize(result, decorator_module = nil)
         return [] if result.ntuples == 0
 
-        key = result.fields.join(',')
-
-        # trivial fast LRU implementation
-        materializer = @cache.delete(key)
-        if materializer
-          @cache[key] = materializer
-        else
-          materializer = @cache[key] = new_row_materializer(result)
-          @cache.shift if @cache.length > @max_size
-        end
+        materializer = materializer(result)
 
         if decorator_module
-          materializer = materializer.decorated(decorator_module)
+          if materializer.respond_to?(:row_class)
+            materializer = materializer.row_class.decorated(decorator_module)
+          else
+            materializer = materializer.decorated(decorator_module)
+          end
         end
 
-        i = 0
-        r = []
-        # quicker loop
-        while i < result.ntuples
-          r << materializer.materialize(result, i)
-          i += 1
+        if materializer.respond_to?(:materialize_all)
+          materializer.materialize_all(result)
+        else
+          i = 0
+          r = []
+          # quicker loop
+          while i < result.ntuples
+            r << materializer.materialize(result, i)
+            i += 1
+          end
+          r
         end
-        r
       end
 
       private
@@ -67,19 +72,25 @@ module MiniSql
           i += 1
         end
 
-        Class.new do
+        row_class = Class.new do
           extend MiniSql::Decoratable
           include MiniSql::Result
 
           attr_accessor(*fields)
+        end
 
-          instance_eval <<~RUBY
-            def materialize(pg_result, index)
-              r = self.new
-              #{col = -1; fields.map { |f| "r.#{f} = pg_result.getvalue(index, #{col += 1})" }.join("; ")}
-              r
-            end
-          RUBY
+        row_class.instance_eval <<~RUBY
+          def materialize(pg_result, index)
+            r = self.new
+            #{col = -1; fields.map { |f| "r.#{f} = pg_result.getvalue(index, #{col += 1})" }.join("; ")}
+            r
+          end
+        RUBY
+
+        if defined?(MiniSql::Postgres::Native::RowMaterializer) && ENV["MINI_SQL_PG_NATIVE"] != "0"
+          MiniSql::Postgres::Native::RowMaterializer.new(row_class, fields)
+        else
+          row_class
         end
       end
     end

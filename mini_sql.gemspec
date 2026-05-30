@@ -27,7 +27,12 @@ Gem::Specification.new do |spec|
   # The `git ls-files -z` loads the files in the RubyGem that have been added into git.
   # rubocop:disable Discourse/NoChdir
   spec.files = Dir.chdir(File.expand_path('..', __FILE__)) do
-    `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
+    `git ls-files -z`.split("\x0").reject do |f|
+      f.match(%r{^(test|spec|features)/}) ||
+        f.match?(%r{^ext/mini_sql/pg_native/}) ||
+        f == "lib/mini_sql/pg_native.rb" ||
+        f == "mini_sql-pg_native.gemspec"
+    end
   end
   # rubocop:enable Discourse/NoChdir
   spec.require_paths = ["lib"]
